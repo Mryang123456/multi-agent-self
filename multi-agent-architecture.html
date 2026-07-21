@@ -105,10 +105,11 @@
     <li><a href="#s6">支柱三:并行 Worktree 隔离</a></li>
     <li><a href="#s7">共享契约:单一事实源</a></li>
     <li><a href="#s8">可追溯:协作审计日志</a></li>
-    <li><a href="#s9">代码检查 Skill:前后端纵深</a></li>
-    <li><a href="#s10">单 Agent vs 多 Agent 决策框架</a></li>
-    <li><a href="#s11">设计原则与权衡</a></li>
-    <li><a href="#s12">落地实现与技术映射</a></li>
+    <li><a href="#s9">支柱四:协作编排机制(三层Prompt/5阶段/通信协议)</a></li>
+    <li><a href="#s10">代码检查 Skill:前后端纵深</a></li>
+    <li><a href="#s11">单 Agent vs 多 Agent 决策框架</a></li>
+    <li><a href="#s12">设计原则与权衡</a></li>
+    <li><a href="#s13">落地实现与技术映射</a></li>
   </ol>
 </div>
 
@@ -419,7 +420,66 @@ Agent(subagent_type="backend", isolation:"worktree",
 </div>
 
 <!-- 9 -->
-<h2 id="s9"><span class="num">09</span>代码检查 Skill:前后端纵深</h2>
+<h2 id="s9"><span class="num">09</span>支柱四:协作编排机制</h2>
+<p>多 agent 不只是"派活",还要让协作有秩序、可收敛、可审计。三套机制叠加,把无序协作变成标准化流水线。</p>
+
+<h3>三层 Prompt 配置体系(角色工程)</h3>
+<p>每个 agent 的 prompt 按<strong>三层</strong>组织,确保多轮协作中各角色输出一致性与专业度——不是松散罗列,是结构化配置。</p>
+<table>
+  <tr><th>层</th><th>内容</th><th>管什么</th></tr>
+  <tr><td><strong>① 人格层</strong></td><td>身份代号、背景、协作风格、语气</td><td>角色一致性(始终"像那个人")</td></tr>
+  <tr><td><strong>② 专业边界层</strong></td><td>专业能力清单、工作原则、输出要求、<strong>不越界</strong>声明</td><td>专业度 + 防止角色串台(pm 不写代码、backend 不定需求)</td></tr>
+  <tr><td><strong>③ 通信规则层</strong></td><td>5 阶段参与职责、待确认标记格式、跨角色协作、记忆协议</td><td>协作秩序(知道何时出场、怎么提问、怎么记)</td></tr>
+</table>
+<div class="quote">关键:每层都有明确职责。"不越界"声明写在专业边界层——pm 不替 backend 定技术方案,backend 不替 pm 定需求边界,有歧义走通信协议而非自己脑补。这是消除联调返工的第一道闸。</div>
+
+<h3>5 阶段流水线(标准化协作流程)</h3>
+<p>任务标准化为 5 阶段,team-lead 按阶段编排,阶段间有 <strong>gate</strong>(满足条件才进下一阶段)。消除"想到哪做到哪"的无序协作。</p>
+<table>
+  <tr><th>阶段</th><th>名称</th><th>主责</th><th>输入</th><th>输出</th><th>进入下一阶段 gate</th></tr>
+  <tr><td>S1</td><td>需求澄清</td><td>pm</td><td>用户原始需求</td><td>PRD</td><td>验收标准明确、无未决待确认</td></tr>
+  <tr><td>S2</td><td>契约定义</td><td>backend</td><td>PRD</td><td>接口契约(shared)</td><td>契约落库、字段/错误码定齐</td></tr>
+  <tr><td>S3</td><td>并行实现</td><td>frontend+backend</td><td>契约+PRD</td><td>代码+自检报告</td><td>各自 frontend/backend-review 通过</td></tr>
+  <tr><td>S4</td><td>集成验证</td><td>qa</td><td>代码+契约+验收标准</td><td>测试用例+报告</td><td>P0/P1 缺陷归零</td></tr>
+  <tr><td>S5</td><td>交付收口</td><td>team-lead</td><td>测试报告+产出物</td><td>decisions.md+汇报</td><td>决策日志完整、用户确认</td></tr>
+</table>
+<div class="panel">
+  <p><strong>S3 并行的关键</strong>:frontend 按 shared 契约实现,backend 实现契约,可<strong>并发</strong>——契约先行消除了联调依赖(前端不等后端接口就绪)。改同一仓库时用 worktree 隔离。gate 不满足 → 退回或路由待确认项。</p>
+  <p class="muted">例外:非全流程任务(纯文档、单点修改)可裁剪阶段,但 decisions.md 注明跳过原因。</p>
+</div>
+
+<h3>结构化通信协议:待确认路由 + 3 轮仲裁</h3>
+<p>agent 间协作最大的返工源是"猜测"——前端猜后端字段、后端猜需求边界。这套协议把猜测变成<strong>显式路由</strong>,且有收敛保证。</p>
+<div class="grid2">
+  <div class="card">
+    <h4>待确认标记格式</h4>
+    <pre>【待确认→&lt;目标角色&gt;】&lt;问题&gt;
+(背景: &lt;为什么需要确认&gt;)</pre>
+    <p class="muted">固定格式 → team-lead 可机械识别。目标角色显式(pm/frontend/backend/qa),需用户决策标 →user。不广播、不歧义。</p>
+  </div>
+  <div class="card">
+    <h4>3 轮上限 + 仲裁兜底</h4>
+    <ul>
+      <li>同一待确认项<strong>最多路由 3 轮</strong></li>
+      <li>轮内收敛 → 继续</li>
+      <li>3 轮未收敛 → team-lead <strong>仲裁兜底</strong>:基于双方论据决策,或升级 user</li>
+      <li>仲裁记 decisions.md,被仲裁方按决策执行</li>
+    </ul>
+  </div>
+</div>
+<div class="diagram">
+子 agent 产出含 <span class="hl">【待确认→backend】</span> 标记
+  └─ team-lead 扫描识别 → 路由给 backend(带上下文)
+       └─ backend 答复 → 回传提问方
+            └─ 第 1 轮 / 第 2 轮 / 第 3 轮
+                 ├─ 收敛 → 继续流程
+                 └─ 3 轮未收敛 → <span class="hlp">team-lead 仲裁兜底</span>(决策 or 升级 user)
+<span class="dim">路由 + 仲裁全记 decisions.md,通信可追溯</span>
+</div>
+<div class="quote">为何这套协议:标记格式化 → 机械识别不靠自然语言猜;显式目标角色 → 路由无歧义;3 轮上限 → 防两个 agent 无限拉扯耗 token;仲裁兜底 → 流程不卡死。把"联调猜测性返工"从根上消除。</div>
+
+<!-- 10 -->
+<h2 id="s10"><span class="num">10</span>代码检查 Skill:前后端纵深</h2>
 <p>为 frontend/backend agent 各配一个检查 skill,写完代码强制自检。差异化设计——这正是"前后端各自"的意义,通用 review 给不了这种纵深。</p>
 <div class="grid2">
   <div class="card">
@@ -456,7 +516,7 @@ Agent(subagent_type="backend", isolation:"worktree",
 </div>
 
 <!-- 10 -->
-<h2 id="s10"><span class="num">10</span>单 Agent vs 多 Agent 决策框架</h2>
+<h2 id="s11"><span class="num">11</span>单 Agent vs 多 Agent 决策框架</h2>
 <p>不是"任务大就用多 agent"。先问三个问题,两个以上"是"才上多 agent:</p>
 <table>
   <tr><th>判断维度</th><th>倾向单 Agent</th><th>倾向多 Agent</th></tr>
@@ -468,12 +528,15 @@ Agent(subagent_type="backend", isolation:"worktree",
 <div class="quote">多 agent 的核心价值:上下文隔离带来的聚焦 + 并行/对抗带来的效率与可靠性。当任务能干净分解、且单 agent 上下文会稀释或串行会拖慢时,才该上多 agent;否则单 agent 更简单、更可控、更省。</div>
 
 <!-- 11 -->
-<h2 id="s11"><span class="num">11</span>设计原则与权衡</h2>
+<h2 id="s12"><span class="num">12</span>设计原则与权衡</h2>
 <div class="grid2">
   <div class="card">
     <h4>坚持的原则</h4>
     <ul>
       <li><strong>专职化 + 上下文隔离</strong>:每 agent 只装载它需要的部分,聚焦胜过巨脑</li>
+      <li><strong>三层 Prompt 角色工程</strong>:人格/专业边界/通信规则分层配置 + "不越界"声明,多轮协作中角色一致、专业边界不串台</li>
+      <li><strong>5 阶段 gate 流水线</strong>:标准化协作流程,阶段间 gate 把关,消除无序协作</li>
+      <li><strong>结构化通信</strong>:待确认问题显式标记+自动路由+3轮仲裁兜底,把联调猜测性返工从根上消除</li>
       <li><strong>契约先行</strong>:跨角色协作先约定接口,落 shared,避免返工</li>
       <li><strong>可追溯</strong>:decisions.md + 各 agent 日志层双层审计</li>
       <li><strong>安全红线</strong>:review skill 把安全/数据一致性设为阻断级</li>
@@ -498,7 +561,7 @@ Agent(subagent_type="backend", isolation:"worktree",
 </div>
 
 <!-- 12 -->
-<h2 id="s12"><span class="num">12</span>落地实现与技术映射</h2>
+<h2 id="s13"><span class="num">13</span>落地实现与技术映射</h2>
 <p>本架构基于 Claude Code 的 subagent + skill 体系落地,复刻自 OpenClaw 的角色团队设计并适配无运行时托管的文件式实现。</p>
 <div class="grid2">
   <div class="card">
@@ -509,6 +572,9 @@ Agent(subagent_type="backend", isolation:"worktree",
       <li><strong>workspace</strong>:文件目录隔离</li>
       <li><strong>worktree</strong>:Agent 工具的 <code>isolation:"worktree"</code></li>
       <li><strong>memory</strong>:文件读写,agent 自维护</li>
+      <li><strong>三层 Prompt</strong>:agent.md 按 ①人格/②专业边界/③通信规则 三层组织</li>
+      <li><strong>5 阶段流水线</strong>:PROTOCOL §4 定义,team-lead 按 gate 编排</li>
+      <li><strong>结构化通信</strong>:PROTOCOL §6 定义 <code>【待确认→X】</code> 标记 + 3 轮仲裁,team-lead 路由</li>
       <li><strong>自动运维(B期)</strong>:<code>update_indexes.py</code> 四步流水线 + crontab 每周触发</li>
       <li><strong>归档(B期)</strong>:status/completed_at 驱动,移入 <code>_archive/</code></li>
     </ul>
@@ -517,7 +583,7 @@ Agent(subagent_type="backend", isolation:"worktree",
     <h4>OpenClaw → Claude Code 映射</h4>
     <table>
       <tr><th>OpenClaw</th><th>本实现</th></tr>
-      <tr><td>SOUL.md(角色人格)</td><td>agent.md 正文</td></tr>
+      <tr><td>SOUL.md(角色人格)</td><td>agent.md ①人格层(三层Prompt之一)</td></tr>
       <tr><td>workspace-*</td><td>team-workspaces/*</td></tr>
       <tr><td>memory/+MEMORY.md</td><td>双维度:时间轴(日志/工作/沉淀)× 检索轴(导航/索引/正文)</td></tr>
       <tr><td>运行时托管记忆</td><td>文件式自维护 + frontmatter 唯一事实源</td></tr>
