@@ -54,7 +54,7 @@
 
 <header class="hero">
   <h1>多 Agent 协作架构 · 面试讲述与追问预案</h1>
-  <div class="sub">以简历 4 条为主线 · 每条「怎么讲 + 预判追问 + 参考答」· 含刁钻追问与诚实边界</div>
+  <div class="sub">以简历 5 条为主线 · 每条「怎么讲 + 预判追问 + 参考答」· 含刁钻追问与诚实边界</div>
 </header>
 
 <div class="toc">
@@ -64,7 +64,8 @@
     <li><a href="#b1">条1 · 主+子 Agent 架构与 5 阶段流水线</a></li>
     <li><a href="#b2">条2 · 结构化通信协议与 3 轮仲裁</a></li>
     <li><a href="#b3">条3 · 三层 Prompt 角色工程</a></li>
-    <li><a href="#b4">条4 · 双维度记忆系统</a></li>
+    <li><a href="#b4">条4 · 前后端代码检查 skill</a></li>
+    <li><a href="#b5">条5 · 双维度记忆系统</a></li>
     <li><a href="#tradeoff">整体权衡与选型理由</a></li>
     <li><a href="#tricky">刁钻追问汇总</a></li>
     <li><a href="#honest">诚实边界:别吹过头</a></li>
@@ -179,7 +180,40 @@
 </div>
 
 <!-- 条4 -->
-<h2 id="b4"><span class="num">04</span>条4 · 双维度记忆系统</h2>
+<h2 id="b4"><span class="num">04</span>条4 · 前后端代码检查 skill</h2>
+<div class="resume-line">设计前后端代码检查 skill:探测项目技术栈与 lint 规范裁剪检查项,安全与数据一致性问题设为阻断级,强制 agent 完成后自检。</div>
+
+<div class="panel tell">
+  <span class="label tell">怎么讲(约 90 秒)</span>
+  <p>"光让 agent 写完代码不算完,得有质量门。我给前端和后端各做了一个检查 skill,差异化设计——通用 review 不分前后端,我这套分,因为前后端的坑完全不同。"</p>
+  <p>"关键设计是第 0 步先探测技术栈:读 package.json 或 pom.xml 判断 React 还是 Vue、TS 还是 JS、用什么 ORM,再读 eslint/checkstyle 配置看项目开了关了哪些规则,据此裁剪检查项。JS 项目不跑 tsc,React 才查 Hooks 规则,ORM 参数化基本安全就重点查原生拼接。不探测就瞎跑命令、漏查。"</p>
+  <p>"检查清单前端 6 类、后端 7 类,重点是安全攻击面——前端 XSS/CSRF/CSP/token 存储/依赖漏洞,后端 SQL 注入/越权 IDOR/SSRF/命令注入/反序列化/路径穿越。安全问题和后端的数据一致性(幂等、事务)设为阻断级,发现即标红,不得以'建议'放行。最后跑 lint/类型检查/测试/构建,失败带真实输出不假装通过,分级输出阻断/应修/建议 + 可交付结论。强制写进 agent 的通信规则层,写完代码必须自检,没过自检不能声称完成。"</p>
+</div>
+
+<h4>预判追问</h4>
+<div class="qa">
+  <div class="q">为什么第 0 步要探测技术栈?直接跑一套标准检查不行吗?</div>
+  <div class="a">不行。标准检查在 JS 项目跑 tsc 会瞎报错,在 Vue 项目查 Hooks 规则无效,ORM 项目重点查 SQL 拼接而原生 SQL 项目才需要。不探测就跑,要么漏查要么误报。探测后裁剪,检查项和项目实际匹配。这也是'读懂项目再动手'的工程习惯,不是一刀切。</div>
+</div>
+<div class="qa">
+  <div class="q">"安全设为阻断级"——这个等级谁定的?LLM 自己判断靠谱吗?</div>
+  <div class="a">等级是我在 skill 里预设的规则,不是 LLM 现场判断。XSS、SQL 注入、敏感信息泄露这些明确类目写死标红,LLM 只负责识别'这是不是 XSS',识别出来自动阻断级。LLM 可能在'是不是 XSS'上误判,但'是 XSS 就阻断'这个映射是确定的。把不可控的判断限定在识别环节,等级判定走规则,组合可靠。</div>
+</div>
+<div class="qa">
+  <div class="q">这跟现成的 eslint/sonarqube 有什么区别?为什么要自己做?</div>
+  <div class="a">eslint 查规则违反,sonarqube 查代码异味,但它们不查'业务级安全'——比如 token 存 localStorage、开放重定向、CSRF 防护缺失这些 lint 抓不到。我这个 skill 补的是 lint 之上的业务安全 + 数据一致性(幂等/事务)审查,且能读团队规范文档对照。不是替代 lint,是 lint 之上的纵深。而且它能被 agent 自动调用,嵌入 5 阶流的 S3 gate,这是 lint 工具不做的。</div>
+</div>
+<div class="qa">
+  <div class="q">强制自检,agent 真的会调这个 skill 吗?怎么强制?</div>
+  <div class="a">靠 prompt 约束——frontend/backend agent 的通信规则层写了'完成后必做自检'。是软约束,有概率漏。但配合 5 阶段 gate:S3 的 gate 条件是'frontend/backend-review 通过',team-lead 收口时检查自检报告,没自检报告不放过 S3。流程 gate 兜底,不纯靠 agent 自觉。</div>
+</div>
+<div class="qa">
+  <div class="q">前端 6 类后端 7 类,这些分类怎么来的?有依据吗?</div>
+  <div class="a">前端 6 类(正确性/安全/类型/a11y/性能/工程化)、后端 7 类(正确性/安全/契约/数据一致性/性能/稳定性/可观测性)是按前后端各自的失败模式分的。前端死在 XSS 和重渲染,后端死在 SQL 注入和幂等事务——这些是 OWASP 和工程实践里高频项。不是拍脑袋,是对照常见漏洞清单 + 实战踩坑整理的。具体每类下的检查项(前端 12 个攻击面、后端 12 个)在 skill 里有清单。</div>
+</div>
+
+<!-- 条5 -->
+<h2 id="b5"><span class="num">05</span>条5 · 双维度记忆系统</h2>
 <div class="resume-line">设计 workspace 隔离 + 双维度记忆系统(时间生命周期 × 检索深度),配合 cron 自动运维与归档机制,保障多 Agent 并行状态隔离与上下文可追溯。</div>
 
 <div class="panel tell">
@@ -257,7 +291,8 @@
   <ul>
     <li><strong>没上过生产</strong>:个人项目 + job-filler 端到端验证,不是生产系统。被问"上线情况"如实说。</li>
     <li><strong>101 条不是我的</strong>:那是参考系统(寄生原生 auto-memory 那套)的规模。我这套目前单角色个位数。别说成自己的数据。</li>
-    <li><strong>软约束不绝对</strong>:不越界声明、待确认标记、主动召回,都靠 LLM 自觉,有概率失效。说"显著降低"不说"消除"。</li>
+    <li><strong>软约束不绝对</strong>:不越界声明、待确认标记、主动召回、代码自检,都靠 LLM 自觉 + gate 兜底,有概率失效。说"显著降低"不说"消除"。</li>
+    <li><strong>检查 skill 非 lint 替代</strong>:是 lint 之上的业务安全/一致性纵深,不替代 eslint/sonarque。别吹成"替代静态分析工具"。</li>
     <li><strong>无对照实验</strong>:"消除返工""比单 agent 强"没有量化对照数据,只有设计预期 + 单项目定性验证。被问数据就承认。</li>
     <li><strong>智能召回失效是环境约束</strong>:不是主动检索"更好",是 sideQuery 在代理环境 0 注入才换的范式,各有代价。</li>
     <li><strong>借鉴 vs 原创要分清</strong>:角色工程、记忆理念借鉴 OpenClaw;多 agent 编排、5 阶段、通信协议、双维度结构是原创。别把借鉴的说成全自己想的。</li>
