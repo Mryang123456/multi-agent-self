@@ -102,7 +102,7 @@
     <li><a href="#s3">角色分工:5 个专职 Agent</a></li>
     <li><a href="#s4">支柱一:Workspace 隔离</a></li>
     <li><a href="#s5">支柱二:双维度记忆系统</a></li>
-    <li><a href="#s6">支柱三:并行 Worktree 隔离</a></li>
+    <li><a href="#s6">支柱三:并行代码隔离(同仓库worktree/不同仓库)</a></li>
     <li><a href="#s7">共享契约:单一事实源</a></li>
     <li><a href="#s8">可追溯:协作审计日志</a></li>
     <li><a href="#s9">支柱四:协作编排机制(三层Prompt/5阶段/通信协议)</a></li>
@@ -373,17 +373,25 @@ status: active
 </div>
 
 <!-- 6 -->
-<h2 id="s6"><span class="num">06</span>支柱三:并行 Worktree 隔离</h2>
+<h2 id="s6"><span class="num">06</span>支柱三:并行代码隔离(同仓库 worktree / 不同仓库天然隔离)</h2>
 <div class="panel">
-  <p><strong>问题:</strong>多个 agent 同时改同一个 git 仓库时,共享文件系统会冲突——frontend 改 <code>src/</code> 的同时 backend 改 <code>server/</code>,可能互相覆盖或产生脏状态。</p>
+  <p>多个 agent 并行改代码时,按<strong>是否同一仓库</strong>分两种隔离方式。不论哪种,前提都是<strong>契约先行</strong>——S2 把接口契约定好落 shared,S3 前后端各自按契约开发,互不等候。</p>
+
+  <h3>同仓库(monorepo)→ git worktree 隔离</h3>
+  <p><strong>问题:</strong>多个 agent 同时改同一个 git 仓库,共享文件系统会冲突——frontend 改 <code>src/</code> 的同时 backend 改 <code>server/</code>,可能互相覆盖或产生脏状态。</p>
   <p><strong>方案:</strong>team-lead 用 <code>isolation: "worktree"</code> 派单,每个 subagent 在独立 git worktree 工作分支上改代码,互不踩踏;完成后 team-lead 收集各 worktree 改动,审查合并。</p>
-  <pre>team-lead 并行派单(改同一仓库):
-Agent(subagent_type="frontend", isolation:"worktree",
-      prompt="在 worktree 内改 src/...")
-Agent(subagent_type="backend", isolation:"worktree",
-      prompt="在 worktree 内改 server/...")
+  <pre>同仓库并行派单:
+Agent(subagent_type="frontend", isolation:"worktree", prompt="改 src/...")
+Agent(subagent_type="backend", isolation:"worktree", prompt="改 server/...")
 ↓ 各自独立分支,完成后 team-lead 合并</pre>
-  <p class="muted">这是真正的"并行状态隔离"——不只是上下文隔离,连文件系统操作都隔离。仅"改代码且并行"时才用 worktree;写文档或单 agent 串行时不必,避免开销。</p>
+
+  <h3>不同仓库(前后端各自仓库)→ 天然隔离,不用 worktree</h3>
+  <p>前后端在不同仓库时,本就不存在"抢同一仓库"的冲突,<strong>不需要 worktree</strong>。team-lead 派单时把各自仓库本地路径传给对应 agent,各自工作目录改代码,零冲突。不要给不同仓库硬加 worktree——会在该仓库建临时工作树,多一层无谓合并。</p>
+  <pre>不同仓库并行派单:
+Agent(subagent_type="frontend", prompt="在 ~/repos/web 内按 shared 契约实现")
+Agent(subagent_type="backend", prompt="在 ~/repos/api 内按契约实现")
+↓ 各自仓库 git 操作,S4 由 qa 拉两仓库联调</pre>
+  <p class="muted">不同仓库的代价在 S4:qa 集成验证要同时拉多个仓库联调,比同仓库重。仅"改代码且并行"时才需隔离;写文档或单 agent 串行时不必。</p>
 </div>
 
 <!-- 7 -->
@@ -444,7 +452,7 @@ Agent(subagent_type="backend", isolation:"worktree",
   <tr><td>S5</td><td>交付收口</td><td>team-lead</td><td>测试报告+产出物</td><td>decisions.md+汇报</td><td>决策日志完整、用户确认</td></tr>
 </table>
 <div class="panel">
-  <p><strong>S3 并行的关键</strong>:frontend 按 shared 契约实现,backend 实现契约,可<strong>并发</strong>——契约先行消除了联调依赖(前端不等后端接口就绪)。改同一仓库时用 worktree 隔离。gate 不满足 → 退回或路由待确认项。</p>
+  <p><strong>S3 并行的关键</strong>:frontend 按 shared 契约实现,backend 实现契约,可<strong>并发</strong>——契约先行消除了联调依赖(前端不等后端接口就绪)。同仓库用 worktree 隔离,不同仓库各自工作目录(见支柱三)。gate 不满足 → 退回或路由待确认项。</p>
   <p class="muted">例外:非全流程任务(纯文档、单点修改)可裁剪阶段,但 decisions.md 注明跳过原因。</p>
 </div>
 
@@ -570,7 +578,7 @@ Agent(subagent_type="backend", isolation:"worktree",
       <li><strong>subagent</strong>:<code>~/.claude/agents/*.md</code>,frontmatter(name/description/tools)+ 正文 system prompt</li>
       <li><strong>skill</strong>:<code>~/.claude/skills/*/SKILL.md</code>,description 决定自动触发</li>
       <li><strong>workspace</strong>:文件目录隔离</li>
-      <li><strong>worktree</strong>:Agent 工具的 <code>isolation:"worktree"</code></li>
+      <li><strong>代码隔离</strong>:同仓库用 <code>isolation:"worktree"</code>;不同仓库各自工作目录(天然隔离)</li>
       <li><strong>memory</strong>:文件读写,agent 自维护</li>
       <li><strong>三层 Prompt</strong>:agent.md 按 ①人格/②专业边界/③通信规则 三层组织</li>
       <li><strong>5 阶段流水线</strong>:PROTOCOL §4 定义,team-lead 按 gate 编排</li>

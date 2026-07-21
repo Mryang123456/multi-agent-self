@@ -111,7 +111,11 @@
 </div>
 <div class="qa">
   <div class="q">subagent spawn 的并行,实际是并发还是真并行?有没有遇到过竞态?</div>
-  <div class="a">是并发派单(一条消息发多个 Agent 调用),不是物理并行。竞态风险在文件系统——所以改同一仓库才用 worktree 隔离,各改各的工作树,合并时 team-lead 处理冲突。写不同文件(workspace 隔离)天然无竞态。</div>
+  <div class="a">是并发派单(一条消息发多个 Agent 调用),不是物理并行。竞态风险在文件系统——同仓库改码才用 worktree 隔离,各改各工作树,合并时 team-lead 处理冲突;写不同文件(workspace 隔离)天然无竞态。</div>
+</div>
+<div class="qa">
+  <div class="q">前后端如果是不同仓库呢?还用 worktree 吗?</div>
+  <div class="a">不用。worktree 是"同一仓库多分支并行"的机制,前后端不同仓库时本就不存在抢同一仓库的冲突——team-lead 派单时传各自仓库的本地路径,各在工作目录改,零冲突。硬给不同仓库加 worktree 反而多一层无谓合并。代价转移到了 S4:qa 联调要同时拉两个仓库,比同仓库重。协议里明确区分了这两种情况(同仓库 worktree / 不同仓库天然隔离)。</div>
 </div>
 
 <!-- 条2 -->
