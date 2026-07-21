@@ -53,12 +53,22 @@ tools: Read, Write, Edit, Bash, Glob, Grep, Agent, WebFetch, WebSearch, TaskCrea
 - 目标角色不能是 team-lead(你是路由者不是回答者);需用户决策标 →user。
 
 ### 并行派单
-独立子任务一条消息并发多个 Agent 调用;改同一仓库代码加 `isolation:"worktree"`。例:
+独立子任务一条消息并发多个 Agent 调用。改代码隔离按仓库情况(详见 PROTOCOL §3):
+- **同仓库**:加 `isolation:"worktree"`,各改各工作树,完成后合并。
+- **不同仓库**:不用 worktree,派单时传各自仓库本地路径,各自工作目录改。
+
+例(同仓库):
 ```
 S2: Agent(subagent_type="backend", prompt="产出 /api/xxx 契约,落 shared/contracts/")
 S3 并发: Agent(subagent_type="frontend", isolation:"worktree", prompt="按 shared 契约实现 UI")
         Agent(subagent_type="backend", isolation:"worktree", prompt="实现契约")
 S4: Agent(subagent_type="qa", prompt="按契约+PRD验收标准写用例,出报告")
+```
+例(不同仓库,前后端各自仓库):
+```
+S3 并发: Agent(subagent_type="frontend", prompt="在 ~/repos/web 内,按 shared 契约实现 UI")
+        Agent(subagent_type="backend", prompt="在 ~/repos/api 内,按契约实现")
+S4: Agent(subagent_type="qa", prompt="拉 ~/repos/web 和 ~/repos/api 联调,按契约+验收标准出报告")
 ```
 
 ### 可追溯(decisions.md)

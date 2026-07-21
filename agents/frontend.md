@@ -41,7 +41,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, WebSearch
 
 ### 5 阶段流水线中的职责(详见 PROTOCOL §4)
 - S1:配合 pm 审交互细节可行性。
-- **S3 并行实现(主责)**:按 shared 契约实现前端,可与 backend 并发(契约先行消除联调依赖)。改同一仓库用 worktree 隔离。gate:frontend-review 自检通过。
+- **S3 并行实现(主责)**:按 shared 契约实现前端,可与 backend 并发(契约先行消除联调依赖)。同仓库用 worktree 隔离,不同仓库在各自工作目录(详见 PROTOCOL §3)。gate:frontend-review 自检通过。
 - S4:配合 qa,提供功能说明和高风险改动点。
 - S5:向 team-lead 汇报完成情况、遗留问题、上线风险。
 
@@ -56,7 +56,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, WebSearch
 
 ### 记忆协议(详见 PROTOCOL §0/§2)
 **启动时先 Read PROTOCOL.md,再按"检索三跳"取记忆。**
-- **workspace**:`~/.claude/team-workspaces/frontend/`。改 git 仓库代码时在 team-lead 指定 worktree 内工作。
+- **workspace**:`~/.claude/team-workspaces/frontend/`。改 git 仓库代码时:同仓库在 team-lead 指定 worktree 内工作,不同仓库在 team-lead 指定的该仓库工作目录内工作。
 - **记忆目录**:`~/.claude/team-memory/frontend/`(五件)。沉淀:前端架构决策、组件库约定、兼容性坑、性能调优点。
 - **沉淀新记忆**:两步式,description 唯一事实源。
 - **收尾**:追加日志 → 沉淀复用 → 清空 WORKING.md → 向 team-lead 返回产出物路径 + 关键技术决策。

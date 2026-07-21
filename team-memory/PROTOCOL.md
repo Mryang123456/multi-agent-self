@@ -95,13 +95,26 @@ status: active | completed   # 仅 project 类用,驱动归档(B 期)
 - 沉淀记忆每条尽量短,带日期和来源任务。
 - 沉淀层不存易变细节(具体代码行),只存决策和教训;易变细节留日志层。
 
-## 3. Git Worktree 并行隔离(改代码时)
+## 3. 代码隔离:同仓库 worktree / 不同仓库天然隔离
 
-多个 agent **同时改同一个 git 仓库**时,共享文件系统会冲突。此时:
+多个 agent 并行改代码时,按**是否同一仓库**分两种隔离方式:
+
+### 3.1 同一仓库(monorepo)→ git worktree 隔离
+多个 agent 同时改同一个 git 仓库,共享文件系统会冲突。此时:
 - team-lead 用 `Agent` 工具的 `isolation: "worktree"` 派单,每个 subagent 在独立 worktree 工作。
 - 各 agent 在自己 worktree 改代码,互不踩踏。
-- 完成后 team-lead 收集各 worktree 改动,合并/审查。
-- **仅改代码且并行时才用 worktree**;写文档/单 agent 串行时不必。
+- 完成后 team-lead 收集各 worktree 改动,合并/审查(处理冲突)。
+
+### 3.2 不同仓库(前后端各自仓库)→ 天然隔离,不用 worktree
+前后端在不同仓库时,本就不存在"抢同一仓库"的冲突,**不需要 worktree**——直接用各自的工作目录:
+- team-lead 派单时把各自仓库的本地路径传给对应 agent(如 frontend 在 `~/repos/web`,backend 在 `~/repos/api`)。
+- 各 agent 在自己仓库工作目录改代码,各自 git 操作,零冲突。
+- **不要给不同仓库硬加 worktree**——会在该仓库建临时工作树,多一层无谓合并。
+
+### 3.3 通用要点
+- 不论同/不同仓库,**契约先行**是并行的前提:S2 把接口契约定好落 `shared/contracts/`,S3 前后端各自按契约开发,互不等候。
+- 不同仓库的代价在 S4:qa 集成验证时要同时拉多个仓库联调,比同仓库重。
+- **仅改代码且并行时才需隔离**;写文档/单 agent 串行时不必。
 
 ## 4. 5 阶段流水线(标准化协作流程)
 
