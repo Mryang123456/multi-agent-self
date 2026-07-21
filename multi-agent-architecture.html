@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多 Agent 协作架构 · 面试总结</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#1a2029; --panel2:#222b36; --border:#2d3a4a;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#4a9eff; --accent2=#7ee787;
+    --green:#7ee787; --red:#ff7b72; --yellow:#f2cc60; --purple:#d2a8ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.7;font-size:15px;
+    padding:0;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 24px 80px}
+  header.hero{
+    background:linear-gradient(135deg,#1a2a3a 0%,#0f1c2a 100%);
+    border:1px solid var(--border);border-radius:12px;padding:40px 36px;margin-bottom:36px;
+  }
+  header.hero h1{font-size:30px;background:linear-gradient(90deg,#4a9eff,#d2a8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+  header.hero .sub{color:var(--muted);font-size:15px}
+  header.hero .tags{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+  .tag{background:var(--panel2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:12px;color:var(--muted)}
+  h2{font-size:22px;margin:40px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);color:var(--accent)}
+  h2 .num{color:var(--muted);font-weight:400;margin-right:10px;font-size:18px}
+  h3{font-size:17px;margin:24px 0 10px;color:var(--text)}
+  p{margin:10px 0;color:var(--text)}
+  .muted{color:var(--muted)}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:16px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:16px 0}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .card h4{font-size:15px;color:var(--accent);margin-bottom:8px}
+  .card .role{font-size:12px;color:var(--muted);margin-bottom:6px}
+  ul{margin:8px 0 8px 4px;list-style:none}
+  ul li{padding:4px 0 4px 22px;position:relative;color:var(--text)}
+  ul li::before{content:"▸";color:var(--accent);position:absolute;left:4px}
+  code{background:var(--panel2);padding:2px 7px;border-radius:4px;font-size:13px;color:var(--green);font-family:"SF Mono",Menlo,monospace}
+  pre{background:#0c1116;border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55;color:var(--text);font-family:"SF Mono",Menlo,monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left}
+  th{background:var(--panel2);color:var(--accent);font-weight:600}
+  tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+  .pill{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;font-weight:600}
+  .r{background:rgba(255,123,114,.15);color:var(--red)}
+  .y{background:rgba(242,204,96,.15);color:var(--yellow)}
+  .g{background:rgba(126,231,135,.15);color:var(--green)}
+  .p{background:rgba(210,168,255,.15);color:var(--purple)}
+  .diagram{background:#0c1116;border:1px solid var(--border);border-radius:8px;padding:24px;font-family:"SF Mono",monospace;font-size:13px;line-height:1.7;overflow-x:auto;color:var(--text)}
+  .diagram .hl{color:var(--accent)}
+  .diagram .hlg{color:var(--green)}
+  .diagram .hlp{color:var(--purple)}
+  .quote{border-left:3px solid var(--accent);padding:6px 0 6px 16px;color:var(--muted);font-style:italic;margin:14px 0}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px 24px;margin-bottom:30px}
+  .toc ol{margin-left:20px;color:var(--muted)}
+  .toc ol li{padding:3px 0}
+  .toc a{color:var(--accent);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+  .footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:13px;text-align:center}
+  .timeline{position:relative;margin:26px 0;padding:8px 0 8px 28px;border-left:2px solid var(--border)}
+  .tl-item{position:relative;margin-bottom:22px}
+  .tl-item:last-child{margin-bottom:0}
+  .tl-item::before{content:'';position:absolute;left:-35px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--panel);border:2px solid var(--accent)}
+  .tl-item.v2::before{border-color:var(--green);background:var(--bg)}
+  .tl-item.v3::before{border-color:var(--purple);background:var(--bg)}
+  .tl-stage{font-family:"SF Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+  .tl-item.v1 .tl-stage{color:var(--accent)}
+  .tl-item.v2 .tl-stage{color:var(--green)}
+  .tl-item.v3 .tl-stage{color:var(--purple)}
+  .tl-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+  .tl-body{font-size:14px;color:var(--muted);line-height:1.7}
+  .tl-fix{display:inline-block;background:rgba(126,231,135,.12);color:var(--green);font-size:12px;padding:1px 8px;border-radius:4px;margin-right:6px;margin-top:4px}
+  .tl-pain{display:inline-block;background:rgba(255,123,114,.12);color:var(--red);font-size:12px;padding:1px 8px;border-radius:4px;margin-right:6px;margin-top:4px}
+  .badge{display:inline-block;background:var(--accent);color:#0f1419;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700;margin-left:8px}
+  @media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>多 Agent 协作架构设计与实践</h1>
+  <div class="sub">面向软件研发全流程的虚拟团队 · workspace 隔离 · 双维度记忆系统 · 并行可追溯</div>
+  <div class="tags">
+    <span class="tag">Multi-Agent Orchestration</span>
+    <span class="tag">Context Isolation</span>
+    <span class="tag">Progressive Memory</span>
+    <span class="tag">Git Worktree</span>
+    <span class="tag">Code Review Automation</span>
+  </div>
+</header>
+
+<div class="toc">
+  <strong style="color:var(--text)">目录</strong>
+  <ol>
+    <li><a href="#s1">问题背景:单 Agent 的瓶颈</a></li>
+    <li><a href="#s2">架构总览</a></li>
+    <li><a href="#s3">角色分工:5 个专职 Agent</a></li>
+    <li><a href="#s4">支柱一:Workspace 隔离</a></li>
+    <li><a href="#s5">支柱二:双维度记忆系统</a></li>
+    <li><a href="#s6">支柱三:并行 Worktree 隔离</a></li>
+    <li><a href="#s7">共享契约:单一事实源</a></li>
+    <li><a href="#s8">可追溯:协作审计日志</a></li>
+    <li><a href="#s9">代码检查 Skill:前后端纵深</a></li>
+    <li><a href="#s10">单 Agent vs 多 Agent 决策框架</a></li>
+    <li><a href="#s11">设计原则与权衡</a></li>
+    <li><a href="#s12">落地实现与技术映射</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<h2 id="s1"><span class="num">01</span>问题背景:单 Agent 的瓶颈</h2>
+<div class="panel">
+  <p>单 Agent 处理一个完整研发任务时,会遇到三个结构性问题:</p>
+  <div class="grid3">
+    <div class="card"><h4>上下文稀释</h4><p class="muted">长任务中间产物堆积,关键信息被淹没,模型注意力分散,质量下降。问题不是"装不下",而是"信噪比变差"。</p></div>
+    <div class="card"><h4>串行阻塞</h4><p class="muted">需求→设计→开发→测试串行走,慢任务拖垮整体,无法利用子任务间的并行性。</p></div>
+    <div class="card"><h4>单一视角</h4><p class="muted">一个角色既写需求又写前后端还做测试,缺少专业纵深和交叉验证,易陷入思维定式。</p></div>
+  </div>
+  <p style="margin-top:14px"><strong>核心洞察:</strong>多 Agent 的真正价值不是"更强",而是<em>上下文隔离带来的聚焦</em>与<em>并行/对抗带来的效率与可靠性</em>。每个 agent 在干净上下文里只思考一件事,往往比一个塞满信息的巨脑更有效。</p>
+</div>
+
+<!-- 2 -->
+<h2 id="s2"><span class="num">02</span>架构总览</h2>
+<div class="diagram">
+┌─────────────────────────── 用户 ───────────────────────────┐
+│                          ↓ 自然语言需求                       │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  <span class="hlp">team-lead</span>  主控 / 技术负责人(编排,不下场)            │  │
+│  │  · 拆解任务 · 并发派单 · worktree 隔离 · 收口 · 追溯   │  │
+│  └───┬──────────┬──────────┬──────────┬──────────────────┘  │
+│      ↓          ↓          ↓          ↓                      │
+│   ┌──────┐  ┌────────┐ ┌────────┐ ┌──────┐                  │
+│   │  pm  │  │frontend│ │backend │ │  qa  │  ← 各自独立上下文  │
+│   └──┬───┘  └───┬────┘ └───┬────┘ └──┬───┘                  │
+│      │          │          │          │                      │
+│      │   workspace 隔离 + 双维度记忆 + worktree(并行改码)      │
+│      └──────────┴────┬─────┴──────────┘                      │
+│                     ↓                                       │
+│           <span class="hl">shared/contracts/</span>  接口契约(单一事实源)            │
+│           <span class="hlg">team-lead/decisions.md</span>  协作审计日志(可追溯)       │
+└────────────────────────────────────────────────────────────┘
+</div>
+<p class="muted">五个 agent 各有独立上下文窗口与工作目录,通过共享文件系统(契约、记忆)协调,由 team-lead 统一编排。这是一个 supervisor-worker 模式 + 流水线 + 共享黑板 的混合架构。</p>
+
+<!-- 3 -->
+<h2 id="s3"><span class="num">03</span>角色分工:5 个专职 Agent</h2>
+<p>每个角色有独立人格(SOUL)、专业能力清单、工作原则、协作方式、语气——复刻自真实研发团队。</p>
+<div class="grid2">
+  <div class="card">
+    <div class="role">主控</div>
+    <h4>team-lead · 技术负责人</h4>
+    <ul>
+      <li>不下场写码,专注拆解/派单/收口</li>
+      <li>并发派独立子任务,契约先行</li>
+      <li>并行改码启用 worktree 隔离</li>
+      <li>维护 decisions.md 可追溯</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="role">产品</div>
+    <h4>pm · 王磊(12 年)</h4>
+    <ul>
+      <li>需求澄清、PRD、用户故事、验收标准</li>
+      <li>JTBD 框架,MVP 权衡,优先级排序</li>
+      <li>对齐比正确更重要;结论先行</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="role">前端</div>
+    <h4>frontend · 张晨(9 年)</h4>
+    <ul>
+      <li>React/Vue/TS、工程化、性能、组件库</li>
+      <li>接口联调提前对齐,契约驱动</li>
+      <li>完成后调用 <code>frontend-review</code> 自检</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="role">后端</div>
+    <h4>backend · 陈浩(10 年)</h4>
+    <ul>
+      <li>Java/Go、微服务、DB 调优、稳定性</li>
+      <li>接口契约先行,产出 shared/contracts</li>
+      <li>完成后调用 <code>backend-review</code> 自检</li>
+    </ul>
+  </div>
+  <div class="card" style="grid-column:1/-1">
+    <div class="role">测试</div>
+    <h4>qa · 张伟(10 年)</h4>
+    <ul>
+      <li>测试策略、用例设计(等价类/边界值/场景法)、自动化(Pytest/Playwright)、性能压测</li>
+      <li>测试左移,用例覆盖"坏人"(异常/边界/并发),上线卡控不妥协</li>
+      <li>从 pm 验收标准转用例,从 shared 契约做接口测试</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 4 -->
+<h2 id="s4"><span class="num">04</span>支柱一:Workspace 隔离</h2>
+<div class="grid2">
+  <div>
+    <h3>目录级隔离</h3>
+    <p>每个角色有独立工作目录,产出物落各自目录,互不污染:</p>
+    <pre>~/.claude/team-workspaces/
+  ├── pm/         PRD、需求文档
+  ├── frontend/   前端方案、组件
+  ├── backend/    接口文档、技术方案
+  └── qa/         用例、测试报告</pre>
+  </div>
+  <div>
+    <h3>为什么重要</h3>
+    <ul>
+      <li><strong>边界清晰</strong>:每个 agent 只在自己 workspace 读写,职责不串</li>
+      <li><strong>并行安全</strong>:写文档类产出不会互相覆盖</li>
+      <li><strong>可审计</strong>:产出物有固定落点,team-lead 能定位</li>
+    </ul>
+    <div class="quote">代码类产出若属于 git 仓库,改用 worktree 隔离(见支柱三),agent 在 team-lead 指定的 worktree 路径内工作。</div>
+  </div>
+</div>
+
+<!-- 5 -->
+<h2 id="s5"><span class="num">05</span>支柱二:双维度记忆系统</h2>
+<p>这是架构的核心创新点。每个 agent 跨会话存活,不"失忆"。记忆沿<strong>两个正交维度</strong>组织——这是迭代到第二版才想清楚的关键设计。</p>
+
+<div class="panel" style="border-left:3px solid var(--yellow)">
+  <p><strong>设计演进:从单维度到双维度。</strong>初版只有"时间生命周期"一个轴(日志→工作→沉淀),但发现 <code>MEMORY.md</code> 会随记忆增多而膨胀,且索引与正文易漂移。引入"检索深度"轴后,根导航恒定短小、索引以 frontmatter 为唯一事实源——这两个硬伤同时解决。借鉴自一套寄生 Claude Code 原生 auto-memory 的成熟记忆系统。</p>
+</div>
+
+<h3>演进时间线</h3>
+<div class="timeline">
+  <div class="tl-item v1">
+    <div class="tl-stage">V1 · 初版 · 单维度</div>
+    <div class="tl-title">时间生命周期轴:日志 / 工作 / 沉淀</div>
+    <div class="tl-body">每 agent 跨会话存活,沿时间轴三阶段:流水日志 → 工作记忆 → 精炼沉淀(即后来维度一的"日志/工作/沉淀")。解决了"失忆"和"产出乱放"。但沉淀全堆进一个 <code>MEMORY.md</code>。</div>
+    <div><span class="tl-pain">痛点:MEMORY.md 随记忆增多膨胀</span><span class="tl-pain">痛点:索引与正文靠手写,易漂移</span><span class="tl-pain">痛点:只增不删,长期腐化</span></div>
+  </div>
+  <div class="tl-item v2">
+    <div class="tl-stage">V2 · A 期 · 引入检索深度轴</div>
+    <div class="tl-title">双维度:时间轴 × 检索轴(导航 → 索引 → 正文)</div>
+    <div class="tl-body">新增检索深度维度:根 MEMORY.md 只做导航(恒定短小),<code>_index.md</code> 做索引,正文带 frontmatter 作为唯一事实源。检索三跳,token 随深度递增。</div>
+    <div><span class="tl-fix">解决:膨胀(分层隔离)</span><span class="tl-fix">解决:漂移(frontmatter 单向同步)</span></div>
+  </div>
+  <div class="tl-item v3">
+    <div class="tl-stage">V3 · B 期 · 自动化运维闭环</div>
+    <div class="tl-title">cron 四步流水线 + 业务完结归档</div>
+    <div class="tl-body">每周 cron 跑 <code>update_indexes.py</code>:结构同步 / 描述同步 / 自动归档 / 导航刷新。归档靠 status 驱动 + 四重安全(只归 project / 显式 completed / 30天反悔 / 只移不删)。记忆卫生从软指令变硬规则。</div>
+    <div><span class="tl-fix">解决:腐化(归档)</span><span class="tl-fix">解决:人工索引维护(全自动)</span></div>
+  </div>
+</div>
+<div class="quote">演进逻辑:每个版本解决上一版的硬伤——V1 能用但会膨胀漂移 → V2 加检索轴治膨胀漂移 → V3 加自动化治腐化和人工维护。不是一次设计到位,是<strong>用问题驱动迭代</strong>,每步都有明确的痛点—解法对应。</div>
+
+<h3>维度一:时间生命周期(管记忆生灭)</h3>
+<p>一条记忆在生命周期哪个阶段。日志可冗余,沉淀去噪;沉淀层不存易变细节(具体代码行),只存决策和教训。</p>
+<table>
+  <tr><th>生命层</th><th>文件</th><th>内容</th><th>生命周期</th></tr>
+  <tr><td><span class="p pill">日志</span></td><td><code>memory/YYYY-MM-DD.md</code></td><td>当日任务流水:做了什么、产出路径、报错</td><td>短期滚动</td></tr>
+  <tr><td><span class="y pill">工作</span></td><td><code>WORKING.md</code></td><td>进行中任务:目标、待办、阻塞</td><td>任务级,完成清空</td></tr>
+  <tr><td><span class="g pill">沉淀</span></td><td><code>mem/&lt;name&gt;.md</code> + <code>_index.md</code></td><td>精炼的决策、契约、教训、偏好</td><td>长期</td></tr>
+</table>
+
+<h3>维度二:检索深度 · 渐进披露(管 token 成本)</h3>
+<p>取一条记忆要付几次检索成本。分层隔离膨胀——记忆再多,顶层导航也恒定短小。</p>
+<table>
+  <tr><th>检索层</th><th>文件</th><th>加载方式</th><th>内容</th><th>成本</th></tr>
+  <tr><td><strong>导航</strong></td><td><code>MEMORY.md</code></td><td>启动读 / 自动注入</td><td>分类导航 + 每类核心话题关键词</td><td>恒定(~20 行)</td></tr>
+  <tr><td><strong>索引</strong></td><td><code>_index.md</code></td><td>按需 Read</td><td>该角色所有沉淀记忆的一行指针 + description</td><td>按需</td></tr>
+  <tr><td><strong>正文</strong></td><td><code>mem/&lt;name&gt;.md</code></td><td>按需 Read</td><td>完整正文(带 frontmatter)</td><td>按需,单条</td></tr>
+</table>
+<div class="quote"><strong>渐进披露的核心:</strong>不是把所有记忆塞进上下文,而是让 agent 先看导航知道有哪几类、每类讲什么关键词 → 判断下钻哪类 → Read 索引看有哪些记忆 → Read 正文拿完整内容。token 成本随检索深度递增,平均一轮只付导航的恒定成本。日志/工作记忆<strong>不进检索索引</strong>——它们是流水,不是可复用知识。</div>
+
+<h3>检索三跳 · 启动协议</h3>
+<div class="diagram">
+每轮对话启动
+  └─ <span class="hl">① 导航</span>: MEMORY.md(分类+关键词)→ 知道有哪几类、每类讲什么
+       └─ 用户提问,判断可能命中某类
+            └─ <span class="hlg">② 索引</span>: _index.md → 看该类有哪些记忆、每条 description
+                 └─ 定位到具体记忆
+                      └─ <span class="hlp">③ 正文</span>: mem/&lt;name&gt;.md → 拿完整内容
+<span class="dim">召回靠 agent 主动 Read + Grep,不依赖智能召回(原生 findRelevantMemories 在代理环境 0 注入,故用可控可审计的主动检索)</span>
+</div>
+
+<h3>单一事实源 · 两步式写入(防索引漂移)</h3>
+<div class="grid2">
+  <div class="card">
+    <h4>frontmatter 是唯一事实源</h4>
+    <pre>---
+name: job-filler-server
+description: job-filler 服务架构
+  要点与已知坑...
+type: project
+status: active
+---</pre>
+    <p class="muted"><code>description</code> 是索引和召回的唯一依据。<code>_index.md</code> 的描述列由它单向同步——索引只是视图,不会和正文漂移。</p>
+  </div>
+  <div class="card">
+    <h4>两步式写入</h4>
+    <ul>
+      <li><strong>① Write 正文</strong> <code>mem/&lt;name&gt;.md</code>,带 frontmatter</li>
+      <li><strong>② Edit 索引</strong> <code>_index.md</code>,追加一行指针</li>
+      <li>不把正文写进索引(它是索引不是记忆)</li>
+      <li>不直接改索引描述列(以 frontmatter 为准)</li>
+    </ul>
+  </div>
+</div>
+
+<h3>四类封闭分类(frontmatter type 字段)</h3>
+<table>
+  <tr><th>type</th><th>含义</th><th>示例</th><th>归档</th></tr>
+  <tr><td><code>user</code></td><td>用户角色、技术背景、画像</td><td>前端转全栈、成长轨迹</td><td><span class="g">永不</span></td></tr>
+  <tr><td><code>feedback</code></td><td>工作方式纠正/确认、踩坑规则</td><td>push 不建 PR、cron 调试用 env -i</td><td><span class="g">永不</span></td></tr>
+  <tr><td><code>project</code></td><td>不能从代码/git 派生的项目背景</td><td>job-filler 服务架构、魔数迁移 KPI</td><td><span class="y">完结自动归档</span></td></tr>
+  <tr><td><code>reference</code></td><td>外部系统/清单指针</td><td>12306 接口、skill 清单</td><td><span class="g">永不</span></td></tr>
+</table>
+
+<h3>收尾协议</h3>
+<div class="grid3">
+  <div class="card"><h4>① 追加日志</h4><p class="muted"><code>memory/今天.md</code> 写本次流水:产出路径、关键决策、报错。</p></div>
+  <div class="card"><h4>② 沉淀复用</h4><p class="muted">值得长期复用的按两步式写入 <code>mem/</code> + 更新 <code>_index.md</code>。</p></div>
+  <div class="card"><h4>③ 清空 + 上报</h4><p class="muted">清空 <code>WORKING.md</code>,向 team-lead 返回产出路径+决策摘要。</p></div>
+</div>
+
+<div class="panel">
+  <p><strong>双维度正交的价值:</strong>一条"沉淀"记忆既在时间轴(生灭),也在检索轴(导航→索引→正文三跳)。两个维度各管各的——时间轴管"这条记忆什么时候有用、何时该归档",检索轴管"取它要花多少 token"。单维度系统解决不了的问题(膨胀、漂移),双维度同时解决。</p>
+</div>
+
+<h3>自动归档:业务完结标记驱动(而非时间老化)</h3>
+<p>记忆只增不删会腐化成垃圾堆。归档由 cron 自动执行,四重安全设计把"误归在用记忆"这个最严重失败模式压到接近零——失败模式偏向"宁可多留别误删"。</p>
+<div class="grid2">
+  <div class="card">
+    <h4>归档四重安全</h4>
+    <ul>
+      <li><strong>只归 project 类</strong>:user/feedback/reference 长期有效,永不归档</li>
+      <li><strong>必须显式 completed</strong>:没标的永不归档,零误归</li>
+      <li><strong>30 天反悔期</strong>:标了 completed_at 的 30 天内可改回 active</li>
+      <li><strong>只移不删</strong>:移入 <code>_archive/</code>,保留结构,可恢复</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>为什么不用时间老化</h4>
+    <p class="muted">时间老化的前提是可靠的内容修改时间,而本项目环境没有(fs mtime 被操作污染、memory 不在 git、文件无 modified 字段)。且 project 类有大量"状态型"记忆,内容几个月不变但项目仍在进行,时间老化会误归。<strong>业务完结是明确判断,比"90 天没动"更准</strong>。</p>
+  </div>
+</div>
+<div class="quote">归档规则:无 <code>completed_at</code> → 立即归档(未启用反悔期);有 <code>completed_at</code> 且距今 &gt;30 天 → 归档。项目完结时改两个字段(status + completed_at),其余全自动。</div>
+
+<h3>自动运维:零人工索引维护(cron 四步流水线)</h3>
+<p>每周一 10:15 一个 cron 跑 <code>update_indexes.py</code>,完成四件事。索引漂移、描述过时、归档清理这些记忆系统经典腐化问题,都由 cron 兜底,不依赖 agent 自觉。</p>
+<table>
+  <tr><th>步骤</th><th>做什么</th><th>解决什么</th></tr>
+  <tr><td><strong>Step 1</strong> 结构同步</td><td>扫 <code>mem/*.md</code> 与 <code>_index.md</code> 对账:新文件追加行、删文件删行</td><td>索引与文件集一致</td></tr>
+  <tr><td><strong>Step 2</strong> 描述同步</td><td>读 frontmatter <code>description</code>,单向同步到 <code>_index.md</code></td><td>索引与正文不漂移(单一事实源)</td></tr>
+  <tr><td><strong>Step 3</strong> 自动归档</td><td>按四重安全规则归档 completed 的 project 记忆到 <code>_archive/</code></td><td>只增不删的腐化</td></tr>
+  <tr><td><strong>Step 4</strong> 导航刷新</td><td>用各 <code>_index.md</code> 记忆清单重建 <code>MEMORY.md</code> 的"当前沉淀"区</td><td>导航层反映最新记忆分布</td></tr>
+</table>
+<div class="panel" style="border-left:3px solid var(--yellow)">
+  <p><strong>诚实的降级:</strong>Step 4 真正的关键词提炼需 LLM(为每类提炼 8-15 个核心话题),当前无 API key,降级为"记忆清单替代"——导航层至少反映该类有哪些记忆,辅助 agent 判断是否下钻。预设分类关键词由人工维护。这是有 LLM 与无 LLM 环境的务实折中,接 key 后可升级。</p>
+</div>
+
+<h3>寄生原生 auto-memory 的评估(保守不重定向)</h3>
+<p>参考的单用户系统用 <code>autoMemoryDirectory</code> 重定向寄生原生 auto-memory,白嫖三个能力:system prompt 自动注入 MEMORY.md、文件写放行(绕过 <code>~/.claude/</code> 危险目录限制)、读时 staleness 注记(防漂移)。</p>
+<div class="panel" style="border-left:3px solid var(--red)">
+  <p><strong>本多 agent 系统保守不重定向主目录</strong>,权衡如下:</p>
+  <ul>
+    <li><strong>结构冲突</strong>:原生期望"顶层 MEMORY.md + 平铺 topic 文件",与本系统双维度结构(分角色 + mem/_index)冲突,可能被原生逻辑误操作</li>
+    <li><strong>收益不保证</strong>:system prompt 注入面向主会话,subagent 派单时未必继承,白嫖的注入对多 agent 价值有限</li>
+    <li><strong>风险明确</strong>:原生接管多 agent 共享目录的风险 &gt; 省下"agent 主动读导航"的收益</li>
+  </ul>
+  <p class="muted">故保留"agent 启动主动读导航层"的范式,可控可审计。这是"读懂原生能力后做针对性取舍"的工程判断,而非盲目照搬。</p>
+</div>
+
+<!-- 6 -->
+<h2 id="s6"><span class="num">06</span>支柱三:并行 Worktree 隔离</h2>
+<div class="panel">
+  <p><strong>问题:</strong>多个 agent 同时改同一个 git 仓库时,共享文件系统会冲突——frontend 改 <code>src/</code> 的同时 backend 改 <code>server/</code>,可能互相覆盖或产生脏状态。</p>
+  <p><strong>方案:</strong>team-lead 用 <code>isolation: "worktree"</code> 派单,每个 subagent 在独立 git worktree 工作分支上改代码,互不踩踏;完成后 team-lead 收集各 worktree 改动,审查合并。</p>
+  <pre>team-lead 并行派单(改同一仓库):
+Agent(subagent_type="frontend", isolation:"worktree",
+      prompt="在 worktree 内改 src/...")
+Agent(subagent_type="backend", isolation:"worktree",
+      prompt="在 worktree 内改 server/...")
+↓ 各自独立分支,完成后 team-lead 合并</pre>
+  <p class="muted">这是真正的"并行状态隔离"——不只是上下文隔离,连文件系统操作都隔离。仅"改代码且并行"时才用 worktree;写文档或单 agent 串行时不必,避免开销。</p>
+</div>
+
+<!-- 7 -->
+<h2 id="s7"><span class="num">07</span>共享契约:单一事实源</h2>
+<div class="grid2">
+  <div>
+    <p>跨角色共享的接口契约、数据模型、错误码字典统一放:</p>
+    <pre>~/.claude/team-memory/shared/
+  └── contracts/
+      └── resume-api.md</pre>
+    <ul>
+      <li><strong>产出方</strong>(通常 backend)写入此处</li>
+      <li><strong>消费方</strong>(frontend/qa)从此读,不各自维护副本</li>
+      <li>契约变更由产出方更新,team-lead 通知消费方</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>为什么是单一事实源</h4>
+    <p>避免前后端各记一份契约导致不一致。契约一旦分散到各 agent 私有记忆,对齐成本飙升且易漂移。集中存放 + 变更通知,是分布式协作里最朴素也最可靠的同步机制。</p>
+    <div class="quote">契约先行:跨角色协作必须先约定契约(落 shared/),再驱动开发,避免返工。</div>
+  </div>
+</div>
+
+<!-- 8 -->
+<h2 id="s8"><span class="num">08</span>可追溯:协作审计日志</h2>
+<div class="panel">
+  <p>team-lead 维护 <code>decisions.md</code>,记录每次协作的完整链路。这是整个团队的审计日志——出问题可回溯"谁在什么时候基于什么决策做了什么"。</p>
+  <pre>~/.claude/team-memory/team-lead/decisions.md
+
+| 日期 | 需求 | 派单 | 产出物 | 关键决策 | 风险 |
+|------|------|------|--------|---------|------|
+| 07-21| 简历解析 | pm+backend 并发→frontend→qa | PRD/契约/代码/用例 | 契约先行,PDF 用 pdf.js | 依赖漏洞 |</pre>
+  <p>叠加各 agent 的 L1 日志(<code>memory/日期.md</code>),形成<strong>双层可追溯</strong>:team-lead 视角的协作链路 + 各角色视角的执行细节。</p>
+</div>
+
+<!-- 9 -->
+<h2 id="s9"><span class="num">09</span>代码检查 Skill:前后端纵深</h2>
+<p>为 frontend/backend agent 各配一个检查 skill,写完代码强制自检。差异化设计——这正是"前后端各自"的意义,通用 review 给不了这种纵深。</p>
+<div class="grid2">
+  <div class="card">
+    <h4>frontend-review <span class="badge">6 类</span></h4>
+    <p><strong>第 0 步探测技术栈</strong>(React/Vue/TS/JS/构建)与 eslint 规范,据此裁剪。</p>
+    <ul>
+      <li>正确性:Hooks 规则、闭包陷阱、key、异步竞态</li>
+      <li><span class="r pill">安全·阻断</span>XSS、CSRF、CSP、token 存储、依赖漏洞、开放重定向、postMessage、点击劫持、SRI、ReDoS</li>
+      <li>类型安全:any 滥用、断言绕过</li>
+      <li>a11y、性能(重渲染/代码分割)、工程化</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>backend-review <span class="badge">7 类</span></h4>
+    <p><strong>第 0 步探测</strong>语言/构建/ORM(决定 SQL 注入查法)与 lint 规范。</p>
+    <ul>
+      <li>正确性:空指针、并发竞态、资源泄漏、边界</li>
+      <li><span class="r pill">安全·阻断</span>SQL 注入、鉴权越权 IDOR、SSRF、命令注入、反序列化、路径穿越、XXE</li>
+      <li>契约一致性、向后兼容</li>
+      <li><span class="r pill">数据一致性·阻断</span>幂等、事务、缓存一致性、DDL 锁表</li>
+      <li>性能(N+1)、稳定性(超时/熔断/限流)、可观测性</li>
+    </ul>
+  </div>
+</div>
+<div class="panel">
+  <p><strong>关键设计:</strong></p>
+  <ul>
+    <li><strong>先探测再裁剪</strong>:第 0 步读 package.json/pom.xml/eslintrc,JS 项目不跑 tsc,React 才查 Hooks,ORM 参数化则 SQL 注入基本安全——避免瞎跑命令、避免漏查。</li>
+    <li><strong>读项目规范</strong>:不只信 lint,还读 CONTRIBUTING/团队约定,理解项目关了哪些规则(关了 no-explicit-any 就人工查 any)。</li>
+    <li><strong>攻击面补全</strong>:前端 12 类、后端 12 类,覆盖 CSRF/依赖漏洞/CSP/反序列化/路径穿越等通用 review 常漏项。</li>
+    <li><strong>阻断红线</strong>:安全与数据一致性问题标 🔴,不得以"建议"放行;依赖漏洞按语言给工具(npm audit/govulncheck/pip-audit/OWASP)。</li>
+    <li><strong>不假装通过</strong>:测试/构建/审计失败带真实输出,分级输出 🔴阻断/🟡应修/🔵建议 + 可交付结论。</li>
+  </ul>
+</div>
+
+<!-- 10 -->
+<h2 id="s10"><span class="num">10</span>单 Agent vs 多 Agent 决策框架</h2>
+<p>不是"任务大就用多 agent"。先问三个问题,两个以上"是"才上多 agent:</p>
+<table>
+  <tr><th>判断维度</th><th>倾向单 Agent</th><th>倾向多 Agent</th></tr>
+  <tr><td>任务能否干净分解</td><td>强耦合,需频繁互通</td><td>子任务边界清晰、IO 明确</td></tr>
+  <tr><td>上下文是否稀释</td><td>短任务,信息密度高</td><td>长任务,中间产物多,关键信息占比低</td></tr>
+  <tr><td>是否需多视角/高可靠</td><td>纯执行,确定性强</td><td>判断类,错不起(安全/关键决策)</td></tr>
+  <tr><td>并行有价值吗</td><td>协调开销 > 收益</td><td>时间敏感/规模大/需交叉验证</td></tr>
+</table>
+<div class="quote">多 agent 的核心价值:上下文隔离带来的聚焦 + 并行/对抗带来的效率与可靠性。当任务能干净分解、且单 agent 上下文会稀释或串行会拖慢时,才该上多 agent;否则单 agent 更简单、更可控、更省。</div>
+
+<!-- 11 -->
+<h2 id="s11"><span class="num">11</span>设计原则与权衡</h2>
+<div class="grid2">
+  <div class="card">
+    <h4>坚持的原则</h4>
+    <ul>
+      <li><strong>专职化 + 上下文隔离</strong>:每 agent 只装载它需要的部分,聚焦胜过巨脑</li>
+      <li><strong>契约先行</strong>:跨角色协作先约定接口,落 shared,避免返工</li>
+      <li><strong>可追溯</strong>:decisions.md + 各 agent 日志层双层审计</li>
+      <li><strong>安全红线</strong>:review skill 把安全/数据一致性设为阻断级</li>
+      <li><strong>双维度记忆</strong>:时间轴(生灭)× 检索轴(token成本)正交,单维度解决不了的膨胀与漂移,双维度同时解决</li>
+      <li><strong>单一事实源</strong>:记忆 frontmatter description 是唯一来源,索引单向同步,索引与正文不漂移</li>
+      <li><strong>自动化闭环</strong>:cron 四步流水线兜底索引漂移/描述过时/归档清理,人只需项目完结改两个字段,记忆卫生从软指令变硬规则</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>主动权衡</h4>
+    <ul>
+      <li><strong>协调成本</strong>:多 agent = 多倍 token + 编排开销,小任务过度工程</li>
+      <li><strong>通信损耗</strong>:agent 间传信息有压缩失真,故用文件(契约/记忆)而非消息</li>
+      <li><strong>worktree 开销</strong>:仅并行改码启用,写文档串行不必</li>
+      <li><strong>留逃生口</strong>:PROTOCOL 写明"单点小任务直接做,别硬上团队"</li>
+      <li><strong>主动检索而非智能召回</strong>:原生 findRelevantMemories 在代理环境失效,改用结构化主动 Read+Grep,可控可审计,代价是召回靠 agent 自觉(可能漏)</li>
+    </ul>
+  </div>
+</div>
+<div class="panel">
+  <p><strong>易变事实外置</strong>:把会过时的细节(API 规范、契约、配置)放进文件(skill/PROTOCOL/memory),而非塞进模型权重。模型只负责"知道该去查"。这是 skill 体系的重要理念,也适用于 memory——沉淀层存决策不存易变细节,易变细节留日志层。</p>
+</div>
+
+<!-- 12 -->
+<h2 id="s12"><span class="num">12</span>落地实现与技术映射</h2>
+<p>本架构基于 Claude Code 的 subagent + skill 体系落地,复刻自 OpenClaw 的角色团队设计并适配无运行时托管的文件式实现。</p>
+<div class="grid2">
+  <div class="card">
+    <h4>实现机制</h4>
+    <ul>
+      <li><strong>subagent</strong>:<code>~/.claude/agents/*.md</code>,frontmatter(name/description/tools)+ 正文 system prompt</li>
+      <li><strong>skill</strong>:<code>~/.claude/skills/*/SKILL.md</code>,description 决定自动触发</li>
+      <li><strong>workspace</strong>:文件目录隔离</li>
+      <li><strong>worktree</strong>:Agent 工具的 <code>isolation:"worktree"</code></li>
+      <li><strong>memory</strong>:文件读写,agent 自维护</li>
+      <li><strong>自动运维(B期)</strong>:<code>update_indexes.py</code> 四步流水线 + crontab 每周触发</li>
+      <li><strong>归档(B期)</strong>:status/completed_at 驱动,移入 <code>_archive/</code></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>OpenClaw → Claude Code 映射</h4>
+    <table>
+      <tr><th>OpenClaw</th><th>本实现</th></tr>
+      <tr><td>SOUL.md(角色人格)</td><td>agent.md 正文</td></tr>
+      <tr><td>workspace-*</td><td>team-workspaces/*</td></tr>
+      <tr><td>memory/+MEMORY.md</td><td>双维度:时间轴(日志/工作/沉淀)× 检索轴(导航/索引/正文)</td></tr>
+      <tr><td>运行时托管记忆</td><td>文件式自维护 + frontmatter 唯一事实源</td></tr>
+      <tr><td>main 调度</td><td>team-lead 编排</td></tr>
+    </table>
+  </div>
+</div>
+<div class="panel">
+  <h3>文件结构总览</h3>
+  <pre>~/.claude/
+├── agents/                      # 5 个 subagent
+│   ├── team-lead.md             # 编排 + worktree + 可追溯
+│   ├── pm.md / frontend.md / backend.md / qa.md   # 各 +双维度memory+workspace
+├── team-memory/                 # 记忆层(双维度 + 自动运维)
+│   ├── PROTOCOL.md              # 协议:双维度+workspace+worktree+契约+可追溯+归档+运维
+│   ├── update_indexes.py        # B期:四步运维脚本(结构/描述/归档/导航)
+│   ├── update-memory-indexes.sh # B期:cron wrapper
+│   ├── .ops.log                 # B期:运维日志
+│   ├── {pm,frontend,backend,qa,team-lead}/
+│   │   ├── MEMORY.md            # 检索·导航(分类+关键词+当前沉淀,恒定短小)
+│   │   ├── _index.md            # 检索·索引(沉淀记忆指针+description)
+│   │   ├── mem/&lt;name&gt;.md       # 检索·正文(带 frontmatter,唯一事实源)
+│   │   ├── _archive/&lt;name&gt;.md  # B期:归档区(只移不删,可恢复)
+│   │   ├── WORKING.md           # 生命·工作(进行中任务,完成清空)
+│   │   └── memory/YYYY-MM-DD.md # 生命·日志(流水,不进索引)
+│   ├── team-lead/decisions.md   # 协作审计日志(可追溯)
+│   └── shared/
+│       ├── _index.md            # 共享契约索引
+│       └── contracts/&lt;name&gt;.md # 接口契约单一事实源
+├── team-workspaces/             # workspace 隔离
+│   └── {pm,frontend,backend,qa}/
+└── skills/
+    ├── frontend-review/         # 前端代码检查(6类+安全阻断)
+    ├── backend-review/          # 后端代码检查(7类+安全/一致性阻断)
+    ├── job-fill/                # job-filler 项目维护
+    └── new-skill/               # skill 脚手架
+
+# crontab: 每周一 10:15 跑 update-memory-indexes.sh (零人工索引维护)</pre>
+</div>
+
+<div class="panel" style="border-left:3px solid var(--purple)">
+  <h3>知识沉淀:架构本身也被记忆化</h3>
+  <p>整套架构(团队角色、双维度记忆设计、B 期运维、skill 职责、演进历程)已沉淀为<strong>个人长期记忆</strong>(<code>~/.claude/projects/&lt;user&gt;/memory/team-memory-protocol.md</code>,project 类),跨会话可召回。开新会话做相关任务时,主 agent 先读这一条即可恢复全貌,不必重读十几个配置文件。</p>
+  <ul>
+    <li><strong>meta memory</strong>:架构设计本身就是一条可被召回的知识——用自己搭的记忆系统记住自己搭的系统,形成自指闭环</li>
+    <li><strong>可传承性</strong>:换会话/换任务不丢上下文,降低重新理解的成本</li>
+    <li><strong>与团队记忆隔离</strong>:个人长期记忆(主 agent 用)和 team-memory(5 个 subagent 用)是两套独立系统,各管各的上下文,不互通——这是设计上的隔离</li>
+  </ul>
+  <div class="quote">这条沉淀本身也走双维度记忆的规则:带 frontmatter(name/description/type:project),描述是召回依据,未来 project 完结可按归档规则处理。</div>
+</div>
+
+<div class="footer">
+  多 Agent 协作架构 · 面试总结文档 · workspace 隔离 + 双维度记忆系统 + 并行 worktree + 可追溯
+</div>
+
+</div>
+</body>
+</html>
