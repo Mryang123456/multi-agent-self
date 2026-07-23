@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 知识体系 · 从基础到前沿</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#1a2029; --panel2:#222b36; --border:#2d3a4a;
+    --text:#e6edf3; --muted:#8b98a9; --accent:#4a9eff; --green:#7ee787;
+    --red:#ff7b72; --yellow:#f2cc60; --purple:#d2a8ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;font-size:15px}
+  .wrap{max-width:980px;margin:0 auto;padding:40px 24px 80px}
+  header.hero{background:linear-gradient(135deg,#1a2a3a 0%,#0f1c2a 100%);border:1px solid var(--border);border-radius:12px;padding:36px 32px;margin-bottom:28px}
+  header.hero h1{font-size:30px;background:linear-gradient(90deg,#4a9eff,#d2a8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+  header.hero .sub{color:var(--muted);font-size:15px}
+  header.hero .meta{margin-top:14px;display:flex;gap:12px;flex-wrap:wrap}
+  header.hero .meta span{font-family:"SF Mono",monospace;font-size:12px;color:var(--muted);background:var(--panel2);padding:3px 10px;border-radius:4px}
+  h2.chapter{font-size:24px;margin:48px 0 16px;padding-bottom:12px;border-bottom:2px solid var(--accent);color:var(--accent);display:flex;align-items:baseline;gap:12px}
+  h2.chapter .ch-num{font-family:"SF Mono",monospace;font-size:16px;color:var(--muted);font-weight:400}
+  h3{font-size:18px;margin:28px 0 10px;color:var(--text)}
+  h3 .sec{font-family:"SF Mono",monospace;font-size:13px;color:var(--purple);margin-right:8px;font-weight:400}
+  h4{font-size:15px;margin:16px 0 6px;color:var(--purple)}
+  p{margin:10px 0}
+  .muted{color:var(--muted)}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:16px 20px;margin:14px 0}
+  .panel.def{border-left:3px solid var(--accent)}
+  .panel.example{border-left:3px solid var(--green);background:rgba(126,231,135,.03)}
+  .panel.warn{border-left:3px solid var(--yellow);background:rgba(242,204,96,.04)}
+  .panel.cite{border-left:3px solid var(--purple);background:rgba(210,168,255,.03)}
+  .label{font-family:"SF Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:6px;display:block}
+  .label.def{color:var(--accent)} .label.example{color:var(--green)} .label.warn{color:var(--yellow)} .label.cite{color:var(--purple)}
+  code{background:var(--panel2);padding:1px 6px;border-radius:3px;font-size:13px;color:var(--green);font-family:"SF Mono",Menlo,monospace}
+  pre{background:#0c1116;border:1px solid var(--border);border-radius:7px;padding:14px;overflow-x:auto;margin:12px 0;font-size:13px;line-height:1.65;color:var(--text);font-family:"SF Mono",Menlo,monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent);font-weight:600}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  ul,ol{margin:8px 0 8px 22px}
+  ul li,ol li{padding:4px 0}
+  .src{font-family:"SF Mono",monospace;font-size:12px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px dashed var(--border)}
+  .src a{color:var(--accent);text-decoration:none}
+  .src a:hover{text-decoration:underline}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:4px;margin-right:5px;font-family:"SF Mono",monospace}
+  .tag-verified{background:rgba(126,231,135,.15);color:var(--green)} .tag-classic{background:rgba(210,168,255,.15);color:var(--purple)}
+  .tag-vendor{background:rgba(242,204,96,.15);color:var(--yellow)}
+  .toc{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:18px 24px;margin-bottom:30px}
+  .toc-title{font-size:13px;color:var(--muted);font-family:"SF Mono",monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+  .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+  .toc a{color:var(--accent);text-decoration:none;font-size:14px;display:block;padding:3px 0}
+  .toc a:hover{text-decoration:underline}
+  .toc .ch{color:var(--muted);font-family:"SF Mono",monospace;font-size:12px;margin-right:6px}
+  .footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;text-align:center}
+  .diagram{background:#0c1116;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:"SF Mono",monospace;font-size:13px;line-height:1.7;overflow-x:auto;color:var(--text);margin:14px 0}
+  .diagram .hl{color:var(--accent)} .diagram .hlg{color:var(--green)} .diagram .hlp{color:var(--purple)}
+  @media(max-width:680px){.toc-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>AI Agent 知识体系</h1>
+  <div class="sub">从基础概念到前沿趋势 · 9 章完整知识地图 · 带引用与已验证内容</div>
+  <div class="meta">
+    <span>9 章 · 概念+原理+框架+工程化</span>
+    <span>带论文/官方引用</span>
+    <span>2026-07</span>
+  </div>
+</header>
+
+<div class="toc">
+  <div class="toc-title">目录</div>
+  <div class="toc-grid">
+    <a href="#ch1"><span class="ch">01</span>Agent 基础</a>
+    <a href="#ch2"><span class="ch">02</span>Agent 核心组件</a>
+    <a href="#ch3"><span class="ch">03</span>单 Agent 架构</a>
+    <a href="#ch4"><span class="ch">04</span>多 Agent 协作架构</a>
+    <a href="#ch5"><span class="ch">05</span>主流框架横评</a>
+    <a href="#ch6"><span class="ch">06</span>多 Agent 通信与编排</a>
+    <a href="#ch7"><span class="ch">07</span>Agent 记忆系统</a>
+    <a href="#ch8"><span class="ch">08</span>Agent 工程化</a>
+    <a href="#ch9"><span class="ch">09</span>落地场景与未来</a>
+  </div>
+</div>
+
+<!-- ========== 第1章 ========== -->
+<h2 class="chapter" id="ch1"><span class="ch-num">第 1 章</span>Agent 基础</h2>
+
+<h3><span class="sec">1.1</span>什么是 AI Agent</h3>
+<div class="panel def">
+  <span class="label def">定义</span>
+  <p>AI Agent 是<strong>以 LLM 为大脑、能感知环境、自主规划、调用工具、多轮行动以完成目标</strong>的系统。它不只是一次性问答,而是在循环中持续推进任务,直到达成目标或满足停止条件。</p>
+</div>
+
+<h4>LLM vs Agent vs Workflow 三者区别</h4>
+<table>
+  <tr><th></th><th>LLM 调用</th><th>Workflow</th><th>Agent</th></tr>
+  <tr><td>本质</td><td>单轮输入→输出</td><td>LLM+工具,预定义代码路径编排</td><td>LLM 动态主导自身流程与工具使用</td></tr>
+  <tr><td>循环</td><td>无</td><td>有,但路径预设</td><td>有,路径模型自决</td></tr>
+  <tr><td>工具</td><td>无</td><td>有</td><td>有</td></tr>
+  <tr><td>自主性</td><td>无</td><td>低(按编排走)</td><td>高(自己规划步骤)</td></tr>
+  <tr><td>可预测性</td><td>高</td><td>高</td><td>低</td></tr>
+  <tr><td>适用</td><td>翻译/摘要/问答</td><td>定义良好的流程</td><td>开放目标、需灵活决策</td></tr>
+</table>
+<div class="src">Anthropic 官方区分:Workflows 是 LLM 与工具通过预定义代码路径编排;Agents 是 LLM 动态主导自身流程。建议定义良好任务用 workflow 换可预测性,需灵活性时才用 agent。<a href="https://www.anthropic.com/engineering/building-effective-agents">anthropic.com/engineering/building-effective-agents</a> <span class="tag tag-verified">已验证</span></div>
+
+<h3><span class="sec">1.2</span>Agent 的演进史</h3>
+<div class="panel">
+  <p><strong>符号 AI / Expert System(1970s-80s)</strong> — 基于规则的推理机(MYCIN 等),有"推理"但无学习、无语言理解,规则爆炸后维护不动。</p>
+  <p><strong>RL Agent(1990s-2010s)</strong> — 强化学习 agent(AlphaGo、游戏 AI),通过 reward 优化策略,但状态/动作空间需精心设计,难迁移到开放语言任务。</p>
+  <p><strong>LLM Agent(2022+)</strong> — LLM 作为通用推理+语言引擎,配合工具调用和记忆,涌现出通用 agent 能力。ReAct(2022)是奠基节点。</p>
+</div>
+<p class="muted">关键转变:从"规则/奖励驱动"到"语言驱动"。LLM 让 agent 能理解模糊指令、用自然语言规划、与人类协作,这是之前范式做不到的。</p>
+
+<h3><span class="sec">1.3</span>感知-思考-行动循环(Agent 的核心范式)</h3>
+<div class="panel def">
+  <span class="label def">核心循环</span>
+  <p>几乎所有 agent 都遵循这个循环:</p>
+</div>
+<div class="diagram">
+<strong>感知(Perceive)</strong> — 接收环境反馈(用户输入、工具结果、代码执行输出)
+   ↓
+<strong>思考(Think)</strong> — LLM 推理:现在状态如何?下一步该做什么?
+   ↓
+<strong>行动(Act)</strong> — 调用工具 / 生成回复 / 修改环境
+   ↓
+(回到感知,直到目标达成或停止条件)
+</div>
+<p>这个循环的学术名是 <strong>ReAct(Reasoning + Acting)</strong>。Anthropic 把 agent 本质概括为"LLM 在循环中基于环境反馈使用工具",每步从环境获取 <strong>ground truth</strong> 评估进展,常用<strong>最大迭代次数</strong>等停止条件维持可控。</p>
+<div class="src">ReAct 原论文:Yao et al. ICLR 2023 · <a href="https://arxiv.org/abs/2210.03629">arxiv.org/abs/2210.03629</a> <span class="tag tag-verified">已验证</span> · Anthropic agent 定义:<a href="https://www.anthropic.com/engineering/building-effective-agents">building-effective-agents</a></div>
+
+<!-- ========== 第2章 ========== -->
+<h2 class="chapter" id="ch2"><span class="ch-num">第 2 章</span>Agent 核心组件</h2>
+<p>一个完整 agent 由若干组件构成,各组件有独立的技术谱系。理解组件才能理解架构。</p>
+
+<h3><span class="sec">2.1</span>Planning(规划)</h3>
+<p>规划解决"为了达成目标,该按什么顺序做什么"。从简单到复杂:</p>
+<div class="panel">
+  <h4>Prompt Chaining(提示链)</h4>
+  <p>把任务分解为步骤序列,每个 LLM 调用处理上一个的输出。可在中间步骤加<strong>程序化检查(gate)</strong>校验流程在正轨。简单可控,但路径预设、不灵活。</p>
+</div>
+<div class="panel">
+  <h4>Chain-of-Thought(思维链,CoT)</h4>
+  <p>让模型"一步步想",在生成答案前先生成推理过程。简单有效,但 token 级从左到右生成,<strong>在需要探索、策略性前瞻、初始决策起决定性作用的任务上不足</strong>。</p>
+</div>
+<div class="panel">
+  <h4>Tree of Thoughts(思维树,ToT)<span class="tag tag-classic">经典</span></h4>
+  <p>把 CoT 推广为<strong>搜索树</strong>:探索多条推理路径、自评候选、前瞻或回溯。在中间推理步骤引入搜索+规划+自评估,而非线性生成。</p>
+  <p><strong>实证</strong>:规划密集的 Game of 24 任务,GPT-4 用 CoT 仅 4%,ToT 达 74%。</p>
+</div>
+<div class="src">ToT:Yao et al. NeurIPS 2023 · <a href="https://arxiv.org/abs/2305.10601">arxiv.org/abs/2305.10601</a> <span class="tag tag-verified">已验证</span> · Prompt chaining + gate:Anthropic <a href="https://www.anthropic.com/engineering/building-effective-agents">building-effective-agents</a></div>
+
+<h3><span class="sec">2.2</span>Memory(记忆)</h3>
+<p>记忆让 agent 跨轮次/跨会话保留信息。分两大类(第 7 章深讲):</p>
+<table>
+  <tr><th>类型</th><th>内容</th><th>类比</th></tr>
+  <tr><td>短期记忆(工作记忆)</td><td>当前对话/任务的上下文窗口内容</td><td>人的工作记忆</td></tr>
+  <tr><td>长期记忆</td><td>跨会话的经验、事实、用户偏好</td><td>人的长期记忆</td></tr>
+</table>
+<p>长期记忆又分:<strong>情景记忆</strong>(具体经历)、<strong>语义记忆</strong>(事实知识)、<strong>程序记忆</strong>(如何做某类事)。Reflexion 明确区分短期(当前轨迹)与长期(累积反思),把反思文本存入长期记忆供后续复用。</p>
+<div class="src">Reflexion:Shinn et al. NeurIPS 2023 · <a href="https://arxiv.org/abs/2303.11366">arxiv.org/abs/2303.11366</a> <span class="tag tag-verified">已验证</span></div>
+
+<h3><span class="sec">2.3</span>Tool Use(工具调用)</h3>
+<div class="panel def">
+  <span class="label def">原理</span>
+  <p>模型接收一组工具定义(名称+描述+参数 schema),在推理时决定"要不要调工具、调哪个、传什么参数",harness 执行工具把结果返回,模型基于结果继续推理。这让 agent 能<strong>改变外部世界</strong>(读文件、跑命令、搜索、调 API),而不只是生成文本。</p>
+</div>
+<p>ReAct 确立了工具调用作为<strong>可靠性机制</strong>的定位——通过与环境交互(Wikipedia API)获取 ground truth,克服纯推理的幻觉与错误传播。</p>
+<div class="panel warn">
+  <span class="label warn">关键认知</span>
+  <p>工具调用不是"让模型更强",而是<strong>让模型接驳确定性</strong>。模型推理不确定,但工具执行(查数据库、跑代码)是确定的——用确定的工具结果校正不确定的推理,这是 agent 可靠性的根基。</p>
+</div>
+
+<h3><span class="sec">2.4</span>Reflection(反思)</h3>
+<p>反思是 agent <strong>评估自身行为并改进</strong>的能力。Reflexion 是代表:不更新权重,而是用<strong>语言化自反思</strong>——Actor 执行、Evaluator 评估、Self-Reflection LM 把反馈转化为反思文本存入记忆,后续 trial 作为上下文注入,从而"吃一堑长一智"。</p>
+<div class="diagram">
+Actor(执行) → Evaluator(评估打分) → Self-Reflection(生成反思文本)
+                                          ↓
+                              存入长期记忆,后续 trial 注入上下文
+</div>
+<p>反思的价值:agent 不需要重新训练就能从失败中学习,把"这次踩的坑"变成"下次避坑的上下文"。</p>
+
+<h3><span class="sec">2.5</span>Loop 与停止条件</h3>
+<p>agent 在循环里跑,但必须有<strong>停止条件</strong>防止无限循环:</p>
+<ul>
+  <li><strong>目标达成</strong>:模型判断任务完成(如输出了最终答案)</li>
+  <li><strong>最大迭代次数</strong>:硬上限,防失控</li>
+  <li><strong>超时</strong>:墙钟时间限制</li>
+  <li><strong>错误熔断</strong>:连续失败 N 次停止</li>
+</ul>
+<p>Anthropic 强调 agent "常用最大迭代次数等停止条件维持可控"——没有停止条件的 agent 是危险的。</p>
+
+<!-- ========== 第3章 ========== -->
+<h2 class="chapter" id="ch3"><span class="ch-num">第 3 章</span>单 Agent 架构</h2>
+<p>单 agent 是多 agent 的基础。几种经典单 agent 范式各有侧重。</p>
+
+<h3><span class="sec">3.1</span>ReAct Agent</h3>
+<p>最基础形态:Thought → Action → Observation 循环。模型先思考再行动再观察结果,反复直到完成。现代 coding agent(Claude Code、Cursor)底层都是 ReAct。</p>
+
+<h3><span class="sec">3.2</span>Reflexion Agent</h3>
+<p>在 ReAct 基础上加反思:每次失败后生成反思存入记忆,下次重试时带上反思上下文。适合<strong>可重试的任务</strong>(如解题、代码通过测试),通过多 trial 提升成功率。</p>
+
+<h3><span class="sec">3.3</span>Plan-and-Execute Agent</h3>
+<p>先<strong>全局规划</strong>(生成完整步骤列表),再<strong>逐步执行</strong>。区别于 ReAct 的"走一步看一步"——Plan-and-Execute 先想清楚再动手,适合步骤明确、中途不需频繁重规划的任务。缺点:计划可能因中途变化失效,需重规划机制。</p>
+
+<h3><span class="sec">3.4</span>单 Agent 的边界</h3>
+<div class="panel warn">
+  <span class="label warn">单 agent 何时不够</span>
+  <ul>
+    <li><strong>上下文稀释</strong>:长任务中间产物堆积,关键信息被淹没,注意力分散</li>
+    <li><strong>串行阻塞</strong>:子任务本可并行,单 agent 只能串行</li>
+    <li><strong>单一视角</strong>:一个角色既写需求又写前后端还测试,缺专业纵深与交叉验证</li>
+    <li><strong>角色冲突</strong>:同一上下文里既当 PM 又当工程师,prompt 互相干扰</li>
+  </ul>
+  <p>这些痛点催生了多 agent 架构——把任务拆给多个专职 agent,各干各的。</p>
+</div>
+
+<!-- ========== 第4章 ========== -->
+<h2 class="chapter" id="ch4"><span class="ch-num">第 4 章</span>多 Agent 协作架构</h2>
+
+<h3><span class="sec">4.1</span>为什么需要多 Agent</h3>
+<p>多 agent 的核心价值不是"更强",而是:</p>
+<ul>
+  <li><strong>上下文隔离</strong>:每个 agent 只装载它需要的部分,聚焦胜过塞满的巨脑</li>
+  <li><strong>并行</strong>:独立子任务并发执行,不串行阻塞</li>
+  <li><strong>专业分工</strong>:不同 agent 不同 prompt/工具/模型,各司其职</li>
+  <li><strong>对抗验证</strong>:多视角交叉验证,提升可靠性</li>
+</ul>
+
+<h3><span class="sec">4.2</span>拓扑结构</h3>
+<div class="panel def">
+  <span class="label def">Vertical vs Horizontal(Masterman 综述)</span>
+  <p>多 agent 拓扑分两类,且是<strong>频谱两端,真实系统多在中间</strong>:</p>
+</div>
+<table>
+  <tr><th>拓扑</th><th>结构</th><th>特点</th><th>适用</th></tr>
+  <tr><td><strong>Vertical</strong>(垂直/supervisor-worker)</td><td>一个 leader,其余向其汇报</td><td>分工明确,中心协调,可追溯</td><td>流程明确的任务</td></tr>
+  <tr><td><strong>Horizontal</strong>(水平/peer-to-peer)</td><td>所有 agent 平等,共享线程讨论,任务自报认领</td><td>灵活,无单点</td><td>开放探索、头脑风暴</td></tr>
+  <tr><td><strong>流水线</strong>(Pipeline)</td><td>A→B→C 串联,每步输出是下步输入</td><td>阶段分明,可并行流水</td><td>阶段化生产</td></tr>
+  <tr><td><strong>黑板</strong>(Blackboard)</td><td>共享状态空间,agent 各自读写</td><td>解耦,松协调</td><td>知识集成</td></tr>
+</table>
+<div class="src">Masterman et al. 综述 2024-04 · <a href="https://arxiv.org/abs/2404.11584">arxiv.org/abs/2404.11584</a> <span class="tag tag-verified">已验证</span> <span class="tag tag-vendor">预印本非同行评审</span></div>
+
+<h3><span class="sec">4.3</span>Workflow vs Agent(Anthropic 定义)</h3>
+<div class="panel">
+  <p>Anthropic 把多步 LLM 系统分两层:</p>
+  <ul>
+    <li><strong>Workflows</strong>:LLM+工具通过<strong>预定义代码路径</strong>编排,可预测、一致。适合定义良好的任务。</li>
+    <li><strong>Agents</strong>:LLM <strong>动态主导</strong>自身流程与工具使用,灵活。适合需模型驱动决策的开放任务。</li>
+  </ul>
+  <p>建议:从 workflow 起步(可预测),复杂度 warranted 时才上 agent(灵活但贵且不可控)。Prompt chaining + gate 是典型 workflow 模式。</p>
+</div>
+<div class="src">Anthropic · <a href="https://www.anthropic.com/engineering/building-effective-agents">building-effective-agents</a> <span class="tag tag-verified">已验证</span></div>
+
+<h3><span class="sec">4.4</span>编排模式</h3>
+<h4>Orchestrator-Worker</h4>
+<p>Anthropic Research 系统的架构:lead agent 规划+生成并行 subagent,每个 subagent 独立上下文窗口并行探索,lead 综合结果,最后 CitationAgent 加引用。<strong>实证</strong>:在内部研究 eval 上比单 agent 高 90.2%,增益集中在可分解为并行 subagent 的广度优先查询。</p>
+<div class="src">Anthropic · <a href="https://www.anthropic.com/engineering/multi-agent-research-system">multi-agent-research-system</a> <span class="tag tag-verified">已验证</span> <span class="tag tag-vendor">厂商自报数据</span></div>
+
+<h4>成本警示</h4>
+<div class="panel warn">
+  <span class="label warn">多 agent 的代价</span>
+  <p>agent 约用 <strong>4 倍</strong>聊天 token,多 agent 约 <strong>15 倍</strong>。BrowseComp eval 上 token 用量单独解释 <strong>80% 性能方差</strong>,加工具调用次数与模型选择共 95%——多 agent 起作用的主因是"花足够多的 token 解决问题"。</p>
+  <p><strong>结论</strong>:多 agent 仅对高价值、高并行任务经济可行;共享上下文或强依赖任务(多数 coding)不适合。这是选多 agent 还是单 agent 的核心判据。</p>
+</div>
+<div class="src">Anthropic · <a href="https://www.anthropic.com/engineering/multi-agent-research-system">multi-agent-research-system</a> <span class="tag tag-verified">已验证</span> <span class="tag tag-vendor">厂商自报数据</span></div>
+
+<!-- ========== 第5章 ========== -->
+<h2 class="chapter" id="ch5"><span class="ch-num">第 5 章</span>主流框架横评</h2>
+<p>各框架定位不同:有的提供图编排原语,有的角色驱动,有的开箱即用。选型看场景。</p>
+
+<h3><span class="sec">5.1</span>LangGraph — 上下文工程 + 五种多 agent 模式</h3>
+<div class="panel">
+  <p>LangGraph(LangChain 出品)以<strong>"上下文工程"(决定每个 agent 看到什么信息)</strong>为多 agent 设计核心,系统质量取决于确保每个 agent 拿到任务所需数据。五种模式:</p>
+  <table>
+    <tr><th>模式</th><th>机制</th></tr>
+    <tr><td>Subagents</td><td>主 agent 把 subagent 当工具协调,所有路由经主 agent</td></tr>
+    <tr><td>Handoffs</td><td>行为随状态动态变化,工具调用更新状态变量触发路由</td></tr>
+    <tr><td>Skills</td><td>按需加载专用 prompt/知识,单一 agent 保持控制</td></tr>
+    <tr><td>Router</td><td>路由步骤分类输入导向专用 agent,结果综合</td></tr>
+    <tr><td>Custom workflow</td><td>混合确定性逻辑与 agentic 行为</td></tr>
+  </table>
+  <p><strong>定位</strong>:图编排框架,控制力强、可定制度高,适合复杂多 agent 流程。<strong>代价</strong>:学习曲线陡,需自己写图逻辑。</p>
+</div>
+<div class="src">LangGraph 官方 · <a href="https://langchain-ai.github.io/langgraph/concepts/multi_agent/">multi_agent concepts</a> <span class="tag tag-verified">已验证</span></div>
+
+<h3><span class="sec">5.2</span>AutoGen — 消息交换原语 + FSM 路由</h3>
+<div class="panel">
+  <p>微软出品。以通用 <code>ConversableAgent</code> 类建模:agent 间通过<strong>交换消息共同完成任务</strong>,核心通信原语是消息交换而非直接函数调用接线。代表子类 AssistantAgent(LLM 写代码)与 UserProxyAgent(人类代理+代码执行器)。</p>
+  <p>群聊中,群聊管理器既广播消息又决定下一位发言者,路由可通过<strong>有限状态机(FSM)图约束</strong>——有向转移矩阵指定合法/非法发言者转移,保证收敛、防死循环。</p>
+  <p><strong>定位</strong>:对话式多 agent,适合需要 agent 间自由对话协商的场景。<strong>注意</strong>:0.2 版本是消息+FSM,0.4+ 已重写为 actor/事件驱动模型,引用须注明版本。</p>
+</div>
+<div class="src">AutoGen 0.2 官方 · <a href="https://microsoft.github.io/autogen/0.2/docs/Use-Cases/agent_chat/">agent_chat</a> <span class="tag tag-verified">已验证</span> <span class="tag tag-vendor">0.2 版本,0.4+ 已重写</span></div>
+
+<h3><span class="sec">5.3</span>CrewAI — 角色驱动</h3>
+<div class="panel">
+  <p>核心抽象:<strong>Crew(团队)</strong> + <strong>Agent(角色,带 role/goal/backstory)</strong> + <strong>Task(任务)</strong> + <strong>Process(执行模式,sequential/hierarchical)</strong>。声明式定义角色和任务,框架编排。</p>
+  <p><strong>定位</strong>:上手快,角色人设感强,适合"模拟一个团队干活"的场景。<strong>代价</strong>:控制粒度粗,复杂流程编排不如 LangGraph 灵活。</p>
+</div>
+
+<h3><span class="sec">5.4</span>OpenAI Agents SDK</h3>
+<div class="panel">
+  <p>OpenAI 官方轻量框架。核心原语:<strong>Agent</strong>(指令+工具+模型)+ <strong>Handoff</strong>(agent 间移交控制)+ <strong>Guardrails</strong>(输入输出校验)+ <strong>Tracing</strong>(内置可观测)。</p>
+  <p><strong>定位</strong>:官方、轻、与 OpenAI 模型生态紧耦合,Handoff 是亮点。<strong>代价</strong>:绑定 OpenAI 生态,多 agent 复杂编排能力弱于 LangGraph。</p>
+</div>
+
+<h3><span class="sec">5.5</span>LangChain Agent</h3>
+<div class="panel">
+  <p>早期通用 agent 抽象,工具链丰富(文档加载/向量库/记忆/工具)。AgentExecutor 驱动 ReAct 循环。<strong>定位</strong>:生态全、入门通用。<strong>代价</strong>:较重,抽象层多,复杂场景推荐升级到 LangGraph。</p>
+</div>
+
+<h3><span class="sec">5.6</span>Claude Code — subagent + skill 体系(详解)</h3>
+<div class="panel def">
+  <span class="label def">定位</span>
+  <p>Claude Code 是 Anthropic 官方的 <strong>agentic coding 工具</strong>(CLI / 桌面 / Web / IDE 插件),本身就是一个成熟的 agent harness 实例。它不是"造 agent 的框架",而是"一个能干活的 agent + 让你扩展它的体系"。理解它对学 agent 工程化极有价值——它是工业级 agent 落地的样板。</p>
+</div>
+
+<h4>核心架构:一个主 agent + 可扩展体系</h4>
+<div class="diagram">
+<strong>主 agent(Claude 模型 + 工具循环)</strong>
+   ├─ 内置工具:Read/Write/Edit/Bash/Glob/Grep/WebFetch/WebSearch/Agent...
+   ├─ 上下文管理:自动压缩长对话、记忆持久化
+   └─ 可扩展体系 ↓
+        ├─ <span class="hl">Subagent(子 agent)</span>:独立上下文,主 agent 派单
+        ├─ <span class="hlg">Skill(技能)</span>:按需加载的领域知识+流程包
+        ├─ <span class="hlp">MCP(模型上下文协议)</span>:接外部工具/数据源
+        ├─ Hooks:在工具调用前后注入逻辑(自动化)
+        └─ Settings/Permissions:权限与配置
+</div>
+
+<h4>Subagent(子 agent)— 上下文隔离的核心机制</h4>
+<div class="panel">
+  <p>主 agent 可通过 <strong>Agent 工具</strong>派生子 agent 处理子任务。子 agent 有<strong>独立上下文窗口</strong>,不污染主 agent 上下文——这正是多 agent"上下文隔离"的工程实现。</p>
+  <ul>
+    <li><strong>内置 subagent 类型</strong>:Explore(只读搜索)、Plan(架构设计)、general-purpose 等通用类型</li>
+    <li><strong>自定义 subagent</strong>:在 <code>~/.claude/agents/&lt;name&gt;.md</code> 定义,带 frontmatter(name/description/tools)+ 正文 system prompt</li>
+    <li><strong>description 是自动触发依据</strong>:主 agent 根据描述决定何时派单该 subagent</li>
+    <li><strong>tools 字段可收窄权限</strong>:限制子 agent 能用的工具,安全</li>
+    <li><strong>Worktree 隔离</strong>:派单时设 <code>isolation:"worktree"</code>,子 agent 在独立 git worktree 改代码,并行不冲突</li>
+  </ul>
+</div>
+
+<h4>Skill(技能)— 按需加载的领域知识包</h4>
+<div class="panel">
+  <p>Skill 是<strong>封装"领域知识 + 固定流程"的指令包</strong>,对应 LangGraph 的 Skills 模式(按需加载、单 agent 保持控制)。结构:</p>
+  <pre>~/.claude/skills/&lt;name&gt;/
+  └── SKILL.md
+      ├─ frontmatter: name + description(触发依据)
+      └─ 正文: When to use / When NOT to use / Steps / 输出格式</pre>
+  <ul>
+    <li><strong>触发</strong>:用户 <code>/skill-name</code> 手动,或请求匹配 description 时自动</li>
+    <li><strong>价值</strong>:把易变事实(API 规范、流程)放文件而非塞进模型权重;description 决定何时用</li>
+    <li><strong>支持文件</strong>:大参考文档放同目录,SKILL.md 里 <code>Read reference.md</code> 引用,保持 SKILL.md 精简(每次进上下文)</li>
+  </ul>
+</div>
+
+<h4>MCP(Model Context Protocol)— 外部工具/数据接入</h4>
+<div class="panel">
+  <p>MCP 是 Anthropic 推的<strong>开放协议</strong>,标准化 LLM 应用接外部工具/数据源的方式。Claude Code 通过 MCP server 接入:浏览器(Playwright)、数据库、GitHub、Slack 等。一个 MCP server 暴露若干工具,agent 像调内置工具一样调它们。</p>
+  <p><strong>意义</strong>:工具生态标准化,换模型/换 agent 框架能复用 MCP server。是"agent 工具层标准化"的早期实践。</p>
+</div>
+
+<h4>Hooks — 工具调用前后的自动化注入</h4>
+<div class="panel">
+  <p>Hooks 在工具调用事件(PreToolUse/PostToolUse/Stop 等)触发自定义逻辑(脚本)。用于:</p>
+  <ul>
+    <li><strong>自动化行为</strong>:"每次保存 X 就 Y"——这是 skill/memory 做不到的(skill 是按需,Hooks 是事件驱动)</li>
+    <li><strong>权限校验</strong>:危险命令拦截</li>
+    <li><strong>审计日志</strong>:记录所有工具调用</li>
+  </ul>
+  <p>配置在 settings.json,是 harness 把"模型自治"改造成"结构化+可审计"的关键机制。</p>
+</div>
+
+<h4>上下文与记忆管理</h4>
+<div class="panel">
+  <ul>
+    <li><strong>对话压缩</strong>:长对话自动总结,把旧内容压成摘要保留连续性</li>
+    <li><strong>CLAUDE.md</strong>:项目级指令文件,自动注入上下文(项目规范、技术栈、约定)</li>
+    <li><strong>auto-memory</strong>:自动记忆框架,system prompt 注入 MEMORY.md、文件写放行、staleness 注记(但部分能力受 feature flag 控制,代理环境可能失效)</li>
+  </ul>
+</div>
+
+<h4>多形态运行</h4>
+<p>CLI(终端)、桌面应用(Mac/Win)、Web(claude.ai/code)、IDE 扩展(VSCode/JetBrains)。同一 agent 能力跨形态,这是工业级 agent 的成熟度体现。</p>
+
+<h4>Claude Code 作为 agent harness 的设计启示</h4>
+<div class="panel example">
+  <span class="label example">学到的工程模式</span>
+  <ul>
+    <li><strong>主 agent + 可扩展体系</strong>:核心 agent 稳定,扩展性靠 subagent/skill/MCP/hooks 外挂</li>
+    <li><strong>上下文隔离靠 subagent</strong>:多 agent 的工程本质就是"派独立上下文的子任务"</li>
+    <li><strong>易变事实外置</strong>:skill/memory 把会过时的细节放文件,模型只负责"知道该查"</li>
+    <li><strong>事件驱动 + 按需</strong>:Hooks 事件驱动自动化,Skill 按需加载——不靠一个巨型 prompt</li>
+    <li><strong>权限收窄</strong>:subagent 的 tools 字段、settings permissions——安全靠收窄不靠信任</li>
+  </ul>
+</div>
+<div class="src">Claude Code 官方文档 · <a href="https://docs.claude.com/en/docs/claude-code/overview">docs.claude.com/claude-code</a> · subagents/skills/MCP/hooks 各有独立文档页</div>
+
+<h3><span class="sec">5.7</span>框架选型决策树</h3>
+<table>
+  <tr><th>场景</th><th>推荐</th><th>理由</th></tr>
+  <tr><td>开箱即用 coding agent</td><td>Claude Code</td><td>工业级成品,扩展体系完善</td></tr>
+  <tr><td>复杂多 agent 图编排</td><td>LangGraph</td><td>控制力强,五模式覆盖全</td></tr>
+  <tr><td>角色扮演式团队</td><td>CrewAI</td><td>角色抽象直观,上手快</td></tr>
+  <tr><td>对话协商式多 agent</td><td>AutoGen</td><td>消息原语+FSM,适合自由对话</td></tr>
+  <tr><td>OpenAI 生态轻量</td><td>OpenAI Agents SDK</td><td>官方,Handoff 原语</td></tr>
+  <tr><td>快速原型/生态全</td><td>LangChain Agent</td><td>工具链丰富,复杂再升级 LangGraph</td></tr>
+</table>
+
+<!-- ========== 第6章 ========== -->
+<h2 class="chapter" id="ch6"><span class="ch-num">第 6 章</span>多 Agent 通信与编排</h2>
+
+<h3><span class="sec">6.1</span>通信机制</h3>
+<p>多 agent 要协作必须通信。几种主流机制:</p>
+<table>
+  <tr><th>机制</th><th>原理</th><th>优缺点</th></tr>
+  <tr><td><strong>消息传递</strong></td><td>agent 间直接发消息(AutoGen 的 ConversableAgent)</td><td>灵活、解耦;但易混乱、难追溯</td></tr>
+  <tr><td><strong>共享状态/黑板</strong></td><td>agent 读写同一状态空间</td><td>松协调、易集成;并发写需控制</td></tr>
+  <tr><td><strong>契约/接口</strong></td><td>预先约定接口契约,agent 按契约对接</td><td>强一致、可联调;契约变更成本高</td></tr>
+  <tr><td><strong>经中心路由</strong></td><td>所有通信过 orchestrator 转发</td><td>可追溯、可仲裁;中心成瓶颈</td></tr>
+</table>
+<div class="panel warn">
+  <span class="label warn">关键取舍</span>
+  <p>直接通信 vs 经中心路由:直接通信省一跳但难追溯;经中心路由可追溯可仲裁但中心成瓶颈。多数工程系统选"经中心",因为<strong>可追溯性 > 一跳延迟</strong>。</p>
+</div>
+
+<h3><span class="sec">6.2</span>任务路由与分发</h3>
+<p>主 agent 收到任务后怎么决定派给谁:</p>
+<ul>
+  <li><strong>静态路由</strong>:按预设规则(任务类型→角色),如 LangGraph Router 模式</li>
+  <li><strong>动态路由</strong>:LLM 根据任务描述判断该派谁(基于 subagent description 匹配)</li>
+  <li><strong>FSM 约束</strong>:AutoGen 用有向转移矩阵限定合法发言者转移,保证收敛</li>
+  <li><strong>自报认领</strong>:horizontal 拓扑中 agent 自愿认领任务</li>
+</ul>
+
+<h3><span class="sec">6.3</span>并行与收敛</h3>
+<div class="panel">
+  <p><strong>并行</strong>:独立子任务并发派发(一条消息多个 agent 调用),如前后端按契约并行开发。<strong>收敛</strong>:并行结果需汇总——</p>
+  <ul>
+    <li><strong>barrier 等齐</strong>:所有子任务完成才汇总(parallel)</li>
+    <li><strong>pipeline 不等齐</strong>:各子任务独立流过阶段,无 barrier(pipeline)</li>
+    <li><strong>投票裁决</strong>:多个 agent 给答案,多数决或评分</li>
+  </ul>
+</div>
+
+<h3><span class="sec">6.4</span>冲突处理与仲裁</h3>
+<p>agent 间出现分歧(方案 A vs B)怎么办:</p>
+<ul>
+  <li><strong>轮次上限 + 仲裁</strong>:设 N 轮收敛上限,超限由 orchestrator 仲裁或升级人类</li>
+  <li><strong>多视角投票</strong>:多个独立 agent 投票,多数决</li>
+  <li><strong>对抗验证</strong>:一个生成多个挑刺,挑不倒才采信</li>
+</ul>
+<div class="panel warn">
+  <span class="label warn">为何要轮次上限</span>
+  <p>不设上限,两个 agent 可能无限拉扯消耗 token。轮次上限是<strong>收敛保证</strong>,仲裁是 deadlock 破解——保证流程不卡死。这是工程上对"LLM 协作不确定性"的兜底。</p>
+</div>
+
+<h3><span class="sec">6.5</span>上下文工程(Context Engineering)</h3>
+<div class="panel def">
+  <span class="label def">LangGraph 的核心命题</span>
+  <p>多 agent 设计的核心是<strong>上下文工程——决定每个 agent 看到什么信息</strong>。系统质量取决于确保每个 agent 拿到任务所需数据,不多不少。</p>
+</div>
+<p>关键问题:给少了 agent 缺信息做不对;给多了上下文稀释信噪下降。上下文工程就是在这之间找平衡——靠 subagent 隔离(各看各的)、契约传递(只传必要信息)、按需加载(skill)。</p>
+<div class="src">LangGraph · <a href="https://langchain-ai.github.io/langgraph/concepts/multi_agent/">multi_agent concepts</a> <span class="tag tag-verified">已验证</span></div>
+
+<!-- ========== 第7章 ========== -->
+<h2 class="chapter" id="ch7"><span class="ch-num">第 7 章</span>Agent 记忆系统(深)</h2>
+<p>记忆是 agent 跨轮次/跨会话连续性的根基,也是工程上最易腐化的部分。本章深讲。</p>
+
+<h3><span class="sec">7.1</span>记忆类型</h3>
+<table>
+  <tr><th>类型</th><th>内容</th><th>来源</th></tr>
+  <tr><td>短期/工作记忆</td><td>当前对话/任务的上下文</td><td>上下文窗口</td></tr>
+  <tr><td>情景记忆(Episodic)</td><td>具体经历(做过什么任务)</td><td>对话日志</td></tr>
+  <tr><td>语义记忆(Semantic)</td><td>事实知识(用户偏好、规则)</td><td>提炼沉淀</td></tr>
+  <tr><td>程序记忆(Procedural)</td><td>如何做某类事(流程)</td><td>系统指令/skill</td></tr>
+</table>
+<p>Reflexion 明确分短期(当前轨迹)与长期(累积反思),把反思存长期记忆供后续复用——这是短/长期分离的奠基思想。</p>
+<div class="src">Reflexion · <a href="https://arxiv.org/abs/2303.11366">arxiv.org/abs/2303.11366</a> <span class="tag tag-verified">已验证</span></div>
+
+<h3><span class="sec">7.2</span>记忆检索:三种范式</h3>
+<table>
+  <tr><th>范式</th><th>原理</th><th>优缺点</th></tr>
+  <tr><td><strong>主动检索</strong></td><td>agent 按结构(目录/索引)主动 Read+Grep</td><td>可控可审计;靠自觉会漏</td></tr>
+  <tr><td><strong>语义召回</strong></td><td>向量 embedding,相似度召回 top-K</td><td>无损、精准;依赖召回质量,黑盒</td></tr>
+  <tr><td><strong>混合</strong></td><td>结构给方向 + 向量给精准命中</td><td>兼顾;实现复杂</td></tr>
+</table>
+<div class="panel warn">
+  <span class="label warn">诚实认知</span>
+  <p>原生智能召回(如 Claude Code findRelevantMemories 用 sideQuery 选 ≤5 条)在部分代理环境实测 <strong>0 注入</strong>——能力受 feature flag/代理链路影响,不可控。这是很多人转主动检索的原因。</p>
+</div>
+
+<h3><span class="sec">7.3</span>记忆持久化与遗忘</h3>
+<ul>
+  <li><strong>持久化</strong>:文件(markdown/JSON)、数据库、向量库。文件式最简单可审计,数据库适合规模,向量库适合语义召回。</li>
+  <li><strong>遗忘</strong>:主动遗忘避免无限膨胀——时间老化、引用频次衰减、业务完结归档。没有遗忘的系统会腐化成垃圾堆。</li>
+</ul>
+
+<h3><span class="sec">7.4</span>记忆压缩 vs 分层 vs 向量(对比)</h3>
+<table>
+  <tr><th></th><th>压缩(摘要/合并)</th><th>分层(导航/索引/正文)</th><th>向量检索</th></tr>
+  <tr><td>解决</td><td>总量装不下</td><td>检索成本高/全读浪费</td><td>精准召回</td></tr>
+  <tr><td>机制</td><td>把记忆变小</td><td>分层只读相关层</td><td>只召回相关</td></tr>
+  <tr><td>有损</td><td>摘要式有损</td><td>无损</td><td>无损</td></tr>
+  <tr><td>动什么</td><td>内容大小</td><td>访问方式</td><td>访问方式</td></tr>
+  <tr><td>失败</td><td>丢关键信息</td><td>检索漏</td><td>召回漏</td></tr>
+</table>
+<div class="panel warn">
+  <span class="label warn">关键区分</span>
+  <p>压缩治"容量",分层/向量治"检索成本"。病根不同药不同:若问题是装不下用压缩;若是全读浪费用分层或向量。三者不互斥,可组合(分层结构 + 冷记忆压缩 + 向量召回)。</p>
+</div>
+
+<h3><span class="sec">7.5</span>记忆腐化与治理</h3>
+<p>记忆系统随时间会腐化,几种病:</p>
+<ul>
+  <li><strong>膨胀</strong>:只增不减,数量/单条/索引都可能膨胀</li>
+  <li><strong>漂移</strong>:索引与正文不一致(手写维护导致)</li>
+  <li><strong>过时</strong>:旧信息不再准确却没清</li>
+  <li><strong>冗余</strong>:语义重复的记忆堆积</li>
+</ul>
+<p><strong>治理</strong>:单一事实源防漂移、cron 自动同步、归档防膨胀、定期精炼去冗余。核心原则:记忆卫生要靠<strong>硬规则(自动化)而非软指令(靠模型自觉)</strong>——软指令模型常不执行。</p>
+
+<h3><span class="sec">7.6</span>代表记忆系统</h3>
+<table>
+  <tr><th>系统</th><th>机制</th></tr>
+  <tr><td><strong>MemGPT</strong></td><td>OS 思想:核心记忆(常驻)+ 归档记忆(外存)两级,LLM 自主管理记忆分页</td></tr>
+  <tr><td><strong>Mem0</strong></td><td>向量记忆 + 自动提取/更新/删除,专注长期个性化记忆</td></tr>
+  <tr><td><strong>Reflexion</strong></td><td>语言化反思存长期记忆,跨 trial 复用经验</td></tr>
+  <tr><td><strong>OpenAI autoDream</strong></td><td>归档整合:把碎片记忆整合成精炼条目(受 flag 控制)</td></tr>
+</table>
+
+<!-- ========== 第8章 ========== -->
+<h2 class="chapter" id="ch8"><span class="ch-num">第 8 章</span>Agent 工程化</h2>
+<p>agent 能跑起来和能可靠跑生产是两回事。工程化是分水岭。</p>
+
+<h3><span class="sec">8.1</span>评估(Eval)</h3>
+<p>怎么知道 agent 好不好:</p>
+<ul>
+  <li><strong>trajectory eval</strong>:评估 agent 的行动轨迹对不对(不只是结果,还看过程)</li>
+  <li><strong>LLM-as-judge</strong>:用 LLM 评判 agent 输出质量(成本低但主观)</li>
+  <li><strong>基准测试</strong>:标准任务集 + 通过率(BrowseComp、SWE-bench 等)</li>
+  <li><strong>人工评估</strong>:最准但贵</li>
+</ul>
+<p><strong>难点</strong>:agent 输出非确定,同一任务多次跑结果可能不同,评估要跑多次取统计。没有 eval 的 agent 系统是"凭感觉",不可靠。</p>
+
+<h3><span class="sec">8.2</span>可观测性</h3>
+<ul>
+  <li><strong>trace/span</strong>:记录每次工具调用、LLM 调用的输入输出耗时(类 OpenTelemetry)</li>
+  <li><strong>token/延迟/成本仪表盘</strong>:监控资源消耗</li>
+  <li><strong>决策日志</strong>:agent 为什么做这个决策的推理链</li>
+</ul>
+<p>工具:LangSmith、Braintrust、Arize 等。agent 黑盒,可观测性是 debug 和优化的前提。</p>
+
+<h3><span class="sec">8.3</span>安全</h3>
+<div class="panel warn">
+  <span class="label warn">OWASP LLM Top 10 方向</span>
+  <ul>
+    <li><strong>prompt 注入</strong>:用户输入诱导 agent 执行非预期(最常见)</li>
+    <li><strong>越权</strong>:agent 拿了不该拿的权限,读到/改了不该碰的数据</li>
+    <li><strong>敏感信息泄露</strong>:密钥/凭证进日志或上下文</li>
+    <li><strong>过度依赖</strong>:盲目信任 agent 输出未校验</li>
+    <li><strong>供应链</strong>:恶意工具/MCP server</li>
+  </ul>
+</div>
+<p><strong>防御</strong>:权限最小化(收窄 tools)、不自动提交/执行危险操作、输入校验、沙箱执行、secrets 不进上下文。<a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">OWASP LLM Top 10</a> <span class="tag tag-verified">已验证</span></p>
+
+<h3><span class="sec">8.4</span>成本控制</h3>
+<p>多 agent 约 15 倍 token,成本是头等问题:</p>
+<ul>
+  <li><strong>按需加载</strong>:skill/记忆不全加载,用到才读</li>
+  <li><strong>上下文压缩</strong>:长对话总结</li>
+  <li><strong>模型分级</strong>:简单任务用小模型,复杂才用大模型</li>
+  <li><strong>缓存</strong>:重复查询缓存结果</li>
+  <li><strong>裁剪</strong>:小任务不上多 agent(逃生口)</li>
+</ul>
+<div class="src">多 agent 成本数据:Anthropic · <a href="https://www.anthropic.com/engineering/multi-agent-research-system">multi-agent-research-system</a> <span class="tag tag-verified">已验证</span> <span class="tag tag-vendor">厂商自报</span></div>
+
+<h3><span class="sec">8.5</span>可靠性:LLM 不确定性下的工程兜底</h3>
+<div class="panel def">
+  <span class="label def">三层兜底</span>
+  <ul>
+    <li><strong>软约束降频</strong>:prompt 写规则,显著降低失败率(但不绝对)</li>
+    <li><strong>硬流程兜底</strong>:gate 条件、轮次上限+仲裁、cron 校验——用确定性流程框住不确定 LLM</li>
+    <li><strong>可观测可回滚</strong>:全程日志、不自动提交、归档可恢复</li>
+  </ul>
+  <p>不追求 100% 可靠,追求"失败可发现、可回滚、不蔓延"。</p>
+</div>
+
+<h3><span class="sec">8.6</span>评估工具</h3>
+<table>
+  <tr><th>工具</th><th>定位</th></tr>
+  <tr><td>LangSmith</td><td>LangChain 生态,trace+eval+监控一体</td></tr>
+  <tr><td>Braintrust</td><td>eval 平台,支持 LLM-as-judge</td></tr>
+  <tr><td>DeepEval</td><td>开源 eval 框架,单元测试式评估</td></tr>
+</table>
+
+<!-- ========== 第9章 ========== -->
+<h2 class="chapter" id="ch9"><span class="ch-num">第 9 章</span>落地场景与未来</h2>
+
+<h3><span class="sec">9.1</span>典型场景</h3>
+<table>
+  <tr><th>场景</th><th>代表</th><th>特点</th></tr>
+  <tr><td>Coding Agent</td><td>Claude Code、Cursor、Copilot</td><td>改代码、跑测试、提交;确定性环境,易评估</td></tr>
+  <tr><td>Browser Agent</td><td>Anthropic Computer Use、各厂商</td><td>操作浏览器/Web;非确定环境,视觉+DOM 理解</td></tr>
+  <tr><td>Customer Service</td><td>各客服 bot</td><td>对话为主,工具调用查订单;需兜底人工</td></tr>
+  <tr><td>研究/分析</td><td>Anthropic Research、Perplexity</td><td>广度搜索+综合;多 agent 并行优势大</td></tr>
+</table>
+
+<h3><span class="sec">9.2</span>当前失败模式与未解决问题</h3>
+<div class="panel warn">
+  <ul>
+    <li><strong>长程任务可靠性</strong>:步数多了错误累积,后期崩盘</li>
+    <li><strong>规划能力</strong>:复杂任务拆解仍弱,常陷局部最优</li>
+    <li><strong>成本</strong>:多 agent 15× token,大规模落地贵</li>
+    <li><strong>评估难</strong>:非确定输出,eval 难标准化</li>
+    <li><strong>安全</strong>:prompt 注入、越权防护未成熟</li>
+    <li><strong>记忆治理</strong>:长期记忆腐化,自动化治理不完善</li>
+  </ul>
+</div>
+
+<h3><span class="sec">9.3</span>未来趋势</h3>
+<div class="panel">
+  <h4>1. Harness 从"补模型短板"转向"管模型协作"</h4>
+  <p>模型变强 harness 不消失,多 agent 协作的工程问题更突出。harness 工程会成为独立方向。</p>
+  <h4>2. 协议标准化</h4>
+  <p>agent 间通信各家用私有格式,MCP 已开始标准化工具层,未来会有 agent 间通信标准协议。</p>
+  <h4>3. 记忆成原生能力</h4>
+  <p>从外挂文件走向原生,语义检索+结构化融合,跨 agent/会话/项目的知识图谱。</p>
+  <h4>4. 自适应拓扑</h4>
+  <p>agent 自己决定拆几个角色、谁干啥,而非人预设固定流程。</p>
+  <h4>5. Agent OS / Agent 工程师岗位</h4>
+  <p>agent 运行时/调度/权限形成"Agent OS";"AI harness 工程师"成专门岗位,如 DevOps 之于运维。</p>
+</div>
+
+<h3><span class="sec">9.4</span>核心认知总结</h3>
+<div class="panel example">
+  <span class="label example">学完整套体系,记住这几句</span>
+  <ul>
+    <li><strong>Agent = LLM 在循环中基于环境反馈用工具</strong>(ReAct 是范式,Anthropic 是定义)</li>
+    <li><strong>多 agent 价值 = 上下文隔离 + 并行 + 专业分工</strong>,不是"更强"</li>
+    <li><strong>多 agent 代价 = ~15× token</strong>,仅高价值高并行任务值得</li>
+    <li><strong>记忆压缩治容量,分层/向量治检索成本</strong>——病根不同药不同</li>
+    <li><strong>可靠性靠"软约束降频 + 硬流程兜底 + 可观测可回滚"</strong>,不追求 100%</li>
+    <li><strong>易变事实外置</strong>(skill/memory),模型只负责"知道该查"</li>
+  </ul>
+</div>
+
+<div class="footer">
+  AI Agent 知识体系 · 9 章完整 · 带引用与已验证内容 · 与 agent-research-report.html / multi-agent-architecture.html / interview-script2.html 配套
+</div>
+
+</div>
+</body>
+</html>
