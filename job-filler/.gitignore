@@ -1,0 +1,22 @@
+# Node
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# logs / env / db
+*.log
+.env
+.env.local
+.env.*.local
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.db
+
+# editor / os
+.DS_Store
+coverage/
+.vscode/
+.idea/

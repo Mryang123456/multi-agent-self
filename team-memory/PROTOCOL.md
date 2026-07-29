@@ -132,6 +132,19 @@ status: active | completed   # 仅 project 类用,驱动归档(B 期)
 - **阶段 gate**:team-lead 检查上一阶段产出物存在且满足 gate 条件,才派下一阶段。gate 不满足 → 退回或路由待确认项(见 §6)。
 - **例外**:非研发全流程任务(如纯写文档、单点修改)可跳过不相关阶段,team-lead 灵活裁剪,但需在 decisions.md 注明跳过原因。
 
+### 4.1 已知限制:team-lead 派不出 subagent(方案A 范式)
+
+**设计意图**:team-lead 通过 Agent 工具派 pm/frontend/backend/qa 子 agent(其 frontmatter 声明 tools 含 Agent)。
+
+**实际限制**:team-lead 派不出 subagent——subagent 嵌套深度受限(team-lead 本身是主会话派的 subagent,再往下派被运行时拦)。2026-07 多租户登录 MVP 实战验证:team-lead 全程派不出,S3 真并行靠主会话直接派才实现。
+
+**实际范式(方案A)**:
+- **team-lead 退协调位**:S1/S2/S5 协调 + 仲裁 + 判 gate + 维护 decisions.md(单点代答需求/契约可,这些不重)。
+- **主会话直接并行派**:S3 一条消息并发派 backend+frontend subagent(各改各目录,前后端分目录天然隔离);S4 实现 qa 串在后面。
+- **别让 team-lead 试派 subagent**——它会单点代答,丢并行价值。
+
+下次团队任务直接照搬方案A,不用再踩。详见 memory:[[team-lead-cannot-spawn-subagent]] [[team-lead-coordination-pattern]]。
+
 ## 5. 共享契约(shared/contracts)
 
 跨角色共享的接口契约、数据模型、错误码字典放:

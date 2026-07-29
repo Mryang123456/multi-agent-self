@@ -17,4 +17,4 @@
 
 > 自动维护(每周 cron 刷新)。关键词提炼需 LLM,当前以记忆清单替代。
 
-- _(暂无沉淀记忆)_
+- **multi-tenant-login-frontend** (project): 多租户登录前端实现要点(envelope基准/code→UI状态码路由/sessionStorage权衡/Vite tsc -b composite坑)。做该项目前端登录或类似envelope契约联调时相关。

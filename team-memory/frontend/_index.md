@@ -5,5 +5,5 @@
 
 | 记忆 | description | type |
 |------|-------------|------|
-| _(暂无沉淀记忆)_ | | |
+| [multi-tenant-login-frontend](mem/multi-tenant-login-frontend.md) | 多租户登录前端实现要点(envelope基准/code→UI状态码路由/sessionStorage权衡/Vite tsc -b composite坑)。做该项目前端登录或类似envelope契约联调时相关。 | project |
 

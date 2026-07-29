@@ -5,5 +5,4 @@
 
 | 记忆 | description | type |
 |------|-------------|------|
-| _(暂无沉淀记忆)_ | | |
-
+| [multitenant-login-test-lessons](mem/multitenant-login-test-lessons.md) | 多租户登录测试 checklist 与易错点(防探查 vs 错误码表张力、限流前置 zod、logout 仲裁 oracle、opaque session 不可篡改 tenant)。测多租户登录/鉴权功能前读此条。 | reference |

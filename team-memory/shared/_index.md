@@ -5,5 +5,5 @@
 
 | 契约 | description | 产出方 |
 |------|-------------|--------|
-| _(暂无契约)_ | | |
+| [multi-tenant-login-api](contracts/multi-tenant-login-api.md) | 多租户登录功能后端接口契约(登录/登出/鉴权/租户上下文/错误码/session store)。前后端联调单一事实源。MVP:路径租户识别+账密+一用户一租户+共享库 tenant_id 行级隔离。 | backend |
 
