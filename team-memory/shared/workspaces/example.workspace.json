@@ -11,7 +11,11 @@
       "stack": "react-vite",
       "path": "repos/web",
       "adapter": "frontend/react-vite",
-      "runtime": {"host": "127.0.0.1", "port": 5173, "healthEndpoints": ["/"]},
+      "runtime": {
+        "host": "127.0.0.1",
+        "port": 3000,
+        "healthEndpoints": ["/"]
+      },
       "checks": ["lint", "typecheck", "unit", "build"],
       "dataPolicy": "read-only"
     },
@@ -21,7 +25,11 @@
       "stack": "nest-prisma",
       "path": "repos/api",
       "adapter": "backend/nest-prisma",
-      "runtime": {"host": "127.0.0.1", "port": 3000, "healthEndpoints": ["/health/ready"]},
+      "runtime": {
+        "host": "127.0.0.1",
+        "port": 8080,
+        "healthEndpoints": ["/health"]
+      },
       "checks": ["lint", "typecheck", "unit", "build", "integration"],
       "dataPolicy": "no-destructive-writes"
     }
@@ -31,5 +39,5 @@
   "secrets": {
     "databasePassword": "local-secret:example-web-saas/databasePassword"
   },
-  "notes": "这是跨技术栈工作区配置示例，不绑定 ProcureFlow。"
+  "notes": "这是跨技术栈工作区配置示例，不绑定 ProcureFlow 或任何固定项目。"
 }

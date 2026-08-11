@@ -1,62 +1,108 @@
-# 多 Agent 协作架构 · Multi-Agent Architecture
+# 多 Agent 协作架构 · Multi-Agent Operating Layer
 
-一套面向软件研发全流程的虚拟团队示例。仓库展示了角色化 Agent、Skill、工作区隔离、分层记忆、接口契约和决策追溯，并包含一个可运行的多租户登录 SaaS MVP。
+这是一套可迁移的多 Agent 研发协作架构。它不绑定某一台电脑、某一个业务系统，也不绑定 React、Nest、Playwright、MySQL 等具体技术栈。
+
+它的目标是：下载到任意电脑后，通过初始化本机 runtime 与 workspace，就能复用同一套主控 Agent、子 Agent、质量 Gate、证据协议、文件结构门和运行环境所有权规则。
+
+## 架构分层
+
+```text
+多 Agent 架构
+├── 角色层：team-lead / pm / frontend / backend / qa / runtime
+├── 协议层：task / gate / ownership / evidence / file placement
+├── 适配层：project adapter / workspace
+├── 运行时层：service registry / lease / health check / runtime scripts
+└── 项目层：具体前端、后端、数据库、测试代码
+```
 
 ## 仓库结构
 
 ```text
-├── agents/                         # Team Lead、PM、前端、后端、QA 定义
-├── skills/                         # 前后端审查、项目维护和 Skill 脚手架
-├── team-memory/                    # 分角色记忆、共享契约与自动维护脚本
-│   ├── PROTOCOL.md                 # 协作、记忆、隔离及通信协议
-│   ├── update_indexes.py           # 索引同步、归档和导航刷新
-│   ├── shared/contracts/           # 跨角色接口契约（单一事实源）
-│   └── {pm,frontend,backend,qa,team-lead}/
-├── team-workspaces/                # 各角色独立工作区说明
-├── job-filler/                     # 实践项目：多租户登录 SaaS MVP
-│   ├── api/                        # Node.js + Express + SQLite + TypeScript
-│   └── web/                        # React + TypeScript + Vite
-├── agent-knowledge-system.html     # Agent 知识与记忆系统说明
-└── agent-research-report.html      # Agent 架构研究报告
+├── agents/                         # 主控、PM、前端、后端、QA、Runtime Agent 规则
+├── runtime/                        # 本机服务注册表 schema、示例、租约和日志目录
+├── scripts/                        # 可移植初始化、状态检查、健康检查脚本
+├── skills/                         # 前后端检查与项目维护 skill
+├── team-memory/                    # 分角色记忆、共享协议、任务/Gate/适配器/工作区契约
+│   ├── PROTOCOL.md                 # 总协议：记忆、派单、ownership、证据 Gate
+│   ├── shared/
+│   │   ├── adapters/               # 技术栈适配器
+│   │   ├── contracts/              # 共享契约与质量协议
+│   │   ├── gates/                  # S1-S5 Gate 定义
+│   │   ├── ownership/              # 文件/资源租约定义
+│   │   ├── tasks/                  # 任务契约 schema 与示例
+│   │   └── workspaces/             # 工作区 schema 与示例
+│   └── runtime/                    # Runtime Agent 记忆
+└── team-workspaces/                # 角色工作区与报告模板
 ```
 
-> `job-filler` 是历史目录名；目录中的当前实践项目是 `saas-erp` 多租户登录 MVP，并不是招聘表单 Chrome 扩展。
+## 新电脑快速使用
 
-## 核心设计
+克隆仓库后，在仓库根目录执行：
 
-1. **角色分工**：Team Lead 编排，PM、Frontend、Backend、QA 分别负责各自专业产出。
-2. **五阶段流程**：S1 需求澄清 → S2 契约定义 → S3 并行实现 → S4 集成验证 → S5 交付收口。
-3. **工作区隔离**：角色文档产出分目录保存；同仓库并行改码时使用 Git worktree。
-4. **双维度记忆**：时间生命周期（日记、进行中、长期沉淀）与检索深度（导航、索引、正文）正交组织。
-5. **契约优先**：跨角色接口统一写入 `team-memory/shared/contracts/`，避免前后端维护不同副本。
-6. **全程可追溯**：Team Lead 通过 `team-memory/team-lead/decisions.md` 记录阶段、路由、决策与风险。
-
-## 实践项目状态
-
-`job-filler/` 中的多租户登录 MVP 已完成本地实现和验证：
-
-- 后端实现登录、登出、数据库 Session、鉴权、租户复核、限流和审计。
-- 前端实现登录、会话恢复、登出，以及普通错误、限流和跨租户提示。
-- 决策日志记录的 S4 结果为 55/55 测试通过，随后完成 12/12 快速回归，P0/P1 缺陷为零。
-- 本地交付 gate 已通过；生产使用前仍需收紧 CORS，并确保新增业务端点统一执行鉴权和 `tenant_id` 行级过滤。
-
-具体运行方式见 [`job-filler/README.md`](job-filler/README.md)。
-
-## 使用协作架构
-
-在 Claude Code 环境中使用时，可将 `agents/`、`skills/`、`team-memory/` 和 `team-workspaces/` 放入 `~/.claude/`，并按 `team-memory/PROTOCOL.md` 配置团队流程。不同 Agent 平台的配置格式和工具名称可能不同，需要按目标平台适配。
-
-## 记忆索引维护
-
-在 `team-memory/` 下运行：
-
-```bash
-python update_indexes.py --dry-run
-python update_indexes.py
+```powershell
+node scripts/runtime-init.mjs --project my-project
+node scripts/runtime-status.mjs
+node scripts/runtime-health.mjs
 ```
 
-脚本会同步长期记忆索引、归档显式完成且满足条件的项目记忆，并刷新导航文件。建议先使用 `--dry-run` 检查计划。
+第一条命令会生成本机私有文件：
 
-## 忽略文件
+- `runtime/services.local.json`
 
-仓库忽略依赖、环境变量、日志、SQLite 数据库、构建产物及运行时归档等本地文件。不要将密钥或连接凭据写入 Git 或团队记忆。
+这个文件描述“这台电脑上实际有哪些服务、端口和健康检查”。它已被 `.gitignore` 忽略，不会上传 GitHub。
+
+如果你要为某个具体项目配置工作区，可以复制：
+
+```powershell
+Copy-Item team-memory/shared/workspaces/example.workspace.json team-memory/shared/workspaces/my-project.workspace.json
+```
+
+然后修改里面的组件路径、技术栈、端口、QA 策略和 artifact 路径。
+
+## 哪些文件可迁移
+
+可以提交到 Git、跨电脑复用：
+
+- `agents/*.md`
+- `runtime/services.schema.json`
+- `runtime/services.local.example.json`
+- `team-memory/shared/**/*.schema.json`
+- `team-memory/shared/**/example*.json`
+- `team-memory/shared/contracts/*.md`
+- `team-workspaces/qa/templates/*.md`
+- `scripts/runtime-*.mjs`
+
+每台电脑单独生成，不应提交：
+
+- `runtime/services.local.json`
+- `runtime/locks/*`
+- `runtime/leases/*`
+- `runtime/logs/*`
+- 本机绝对路径、PID、sessionId、真实数据库密码、token、cookie、完整连接串
+
+## 核心规则
+
+1. 主控 Agent 不默认某个技术栈。任务必须带 `workspaceId`、`component`、`projectAdapter`、`qaStrategies` 和 `filePlacementPolicy`。
+2. 子 Agent 不得把代码全部平铺在一个目录，必须按 adapter 和文件作用放入对应文件夹。
+3. 自然语言报告只算 `CLAIMED_DONE_UNVERIFIED`，必须由机器证据 Gate 核验后才能变成 `VERIFIED_DONE`。
+4. 真实数据库写入必须有明确授权；默认保留测试数据，清理必须单独授权并精确枚举目标。
+5. 浏览器、数据库、端口、服务进程等有状态资源需要 runtime ownership/lease，避免多 Agent 互相抢环境。
+
+## 详细文档
+
+- [可移植安装与迁移指南](PORTABLE.md)
+- [运行环境说明](runtime/README.md)
+- [技术栈无关架构](team-memory/shared/contracts/technology-agnostic-agent-architecture.md)
+- [文件放置策略](team-memory/shared/contracts/file-placement-policy.md)
+- [机器证据 Gate](team-memory/shared/contracts/agent-evidence-gate.md)
+- [质量 Gate](team-memory/shared/contracts/quality-gates.md)
+- [QA 证据协议](team-memory/shared/contracts/qa-evidence-protocol.md)
+
+## 维护命令
+
+```powershell
+node scripts/runtime-status.mjs --json
+node scripts/runtime-health.mjs --json
+```
+
+`runtime-health` 只做只读探测，不会启动、停止、重启或修复服务。
