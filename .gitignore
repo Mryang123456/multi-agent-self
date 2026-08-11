@@ -7,3 +7,10 @@ node_modules/
 _archive/
 __pycache__/
 *.pyc
+runtime/services.local.json
+runtime/locks/*
+!runtime/locks/.gitkeep
+runtime/leases/*
+!runtime/leases/.gitkeep
+runtime/logs/*
+!runtime/logs/.gitkeep

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "id": "frontend/react-vite",
+  "role": "frontend",
+  "stack": "react-vite",
+  "systemTypes": ["web-saas", "admin-console", "dashboard"],
+  "filePlacementPolicy": {
+    "expectedStructure": ["src/app", "src/features", "src/shared"],
+    "forbiddenFlatPatterns": ["src/pages/*", "src/lib/*", "src/components/*"],
+    "allowedRootFiles": ["package.json", "package-lock.json", "vite.config.ts", "tsconfig.json", "tsconfig.app.json", "index.html", "Dockerfile", "nginx.conf", ".env.example"],
+    "notes": "React/Vite 项目优先按 app/features/shared 分层；测试靠近 feature/shared。"
+  },
+  "checks": {
+    "install": ["npm.cmd install"],
+    "lint": ["npm.cmd run lint"],
+    "typecheck": ["node node_modules/typescript/bin/tsc --noEmit -p tsconfig.app.json"],
+    "unit": ["npm.cmd test"],
+    "build": ["npm.cmd run build -- --configLoader runner"]
+  },
+  "qaStrategies": ["browser-e2e", "accessibility", "visual-smoke", "console-network"],
+  "runtimeHints": {
+    "defaultPorts": [5173],
+    "healthEndpoints": ["/"]
+  },
+  "notes": "不要把 React/Vite 规则写进全局协议；其他前端栈通过自己的 adapter 提供结构与命令。"
+}

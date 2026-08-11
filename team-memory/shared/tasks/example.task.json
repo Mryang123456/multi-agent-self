@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.1",
+  "id": "procureflow-frontend-route-guard",
+  "title": "Protect the organization route",
+  "objective": "Allow only TENANT_ADMIN to render the organization page.",
+  "requestedBy": "team-lead",
+  "stage": "S3",
+  "assignedAgent": "frontend",
+  "workspaceId": "example-web-saas",
+  "component": "web",
+  "projectAdapter": "frontend/react-vite",
+  "stack": "react-vite",
+  "qaStrategies": ["browser-e2e", "accessibility", "console-network"],
+  "dependencies": ["procureflow-api-v1"],
+  "allowedPaths": ["procureflow/frontend/src/App.tsx", "procureflow/frontend/src/lib/permissions.ts", "procureflow/frontend/src/**/*.test.tsx"],
+  "forbiddenPaths": ["procureflow/backend/**", "procureflow/backend/prisma/**"],
+  "acceptanceCriteria": ["TENANT_ADMIN can render /organization", "All other roles redirect before the organization page mounts"],
+  "requiredChecks": ["frontend-targeted-tests", "frontend-full-tests", "frontend-lint", "frontend-typecheck", "frontend-production-build"],
+  "machineEvidence": {
+    "required": true,
+    "expectedArtifacts": ["procureflow/frontend/src/App.tsx", "procureflow/frontend/src/lib/permissions.ts"],
+    "commands": [
+      "git status --short",
+      "rg --files procureflow/frontend/src",
+      "npm.cmd test",
+      "npm.cmd run lint",
+      "node node_modules/typescript/bin/tsc --noEmit"
+    ],
+    "directorySnapshots": ["rg --files procureflow/frontend/src/app procureflow/frontend/src/features procureflow/frontend/src/shared"],
+    "gitStatusCommand": "git status --short",
+    "verificationStatus": "VERIFIED_DONE",
+    "verifiedBy": "team-lead",
+    "verifiedAt": "2026-08-10T10:00:00Z",
+    "notes": "Final answer is not sufficient; the lead compares claims with disk and command output before S5."
+  },
+  "dataPolicy": "read-only",
+  "commitPolicy": "no-commit",
+  "timeoutPolicy": {"heartbeatSeconds": 60, "commandTimeoutSeconds": 300},
+  "status": "completed",
+  "createdAt": "2026-08-10T09:00:00Z",
+  "updatedAt": "2026-08-10T10:00:00Z"
+}

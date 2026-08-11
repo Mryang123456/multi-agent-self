@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "id": "qa/web-saas",
+  "role": "qa",
+  "stack": "web-saas",
+  "systemTypes": ["web-saas", "admin-console"],
+  "filePlacementPolicy": {
+    "expectedStructure": ["qa-artifacts", "team-workspaces/qa"],
+    "forbiddenFlatPatterns": [],
+    "allowedRootFiles": [],
+    "notes": "QA 证据应按 runId/caseId 分组；大型截图、trace、video 不直接提交 Git。"
+  },
+  "checks": {
+    "unit": [],
+    "integration": [],
+    "build": []
+  },
+  "qaStrategies": ["api-contract", "browser-e2e", "accessibility", "visual-smoke", "console-network", "database-consistency", "performance-smoke", "security-smoke"],
+  "runtimeHints": {
+    "defaultPorts": [],
+    "healthEndpoints": []
+  },
+  "notes": "QA 策略按风险裁剪，不要求每个项目固定使用同一个工具。"
+}

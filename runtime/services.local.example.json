@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "updatedAt": null,
+  "services": [
+    {
+      "project": "example-project",
+      "name": "database",
+      "kind": "database",
+      "host": "127.0.0.1",
+      "port": 5432,
+      "pid": null,
+      "sessionId": null,
+      "ownerAgent": "runtime",
+      "buildId": null,
+      "startedAt": null,
+      "required": true,
+      "health": { "type": "tcp", "timeoutMs": 2000 },
+      "dependencies": []
+    },
+    {
+      "project": "example-project",
+      "name": "backend",
+      "kind": "backend",
+      "host": "127.0.0.1",
+      "port": 8080,
+      "pid": null,
+      "sessionId": null,
+      "ownerAgent": "runtime",
+      "buildId": null,
+      "startedAt": null,
+      "required": true,
+      "health": {
+        "type": "http",
+        "url": "http://127.0.0.1:8080/health",
+        "expectedStatus": 200,
+        "timeoutMs": 3000
+      },
+      "dependencies": ["database"]
+    },
+    {
+      "project": "example-project",
+      "name": "frontend",
+      "kind": "frontend",
+      "host": "127.0.0.1",
+      "port": 3000,
+      "pid": null,
+      "sessionId": null,
+      "ownerAgent": "runtime",
+      "buildId": null,
+      "startedAt": null,
+      "required": true,
+      "health": {
+        "type": "http",
+        "url": "http://127.0.0.1:3000/",
+        "expectedStatus": 200,
+        "timeoutMs": 3000
+      },
+      "dependencies": ["backend"]
+    }
+  ]
+}

@@ -1,52 +1,122 @@
-# 多 Agent 协作架构 · Multi-Agent Architecture for Claude Code
+# 多 Agent 协作架构 · 下载即用版
 
-一套基于 Claude Code subagent + skill 体系的虚拟研发团队,面向软件研发全流程:workspace 隔离 + 双维度记忆系统 + 并行 worktree + 可追溯 + 自动化运维。
+这是一套可迁移的多 Agent 研发协作架构。默认用法不是先配置端口、数据库或 runtime，而是：
 
-## 仓库内容
-
-```
-├── multi-agent-architecture.html   # 面试介绍文档(12 节,含架构图/演进时间线)
-├── agents/                         # 5 个 subagent 定义
-│   ├── team-lead.md                #   主控/编排/worktree/可追溯
-│   ├── pm.md                       #   产品经理 王磊
-│   ├── frontend.md                 #   前端工程师 张晨
-│   ├── backend.md                  #   后端工程师 陈浩(契约产出方)
-│   └── qa.md                       #   测试工程师 张伟
-├── skills/                         # 4 个 skill
-│   ├── frontend-review/            #   前端代码检查(6类+安全阻断)
-│   ├── backend-review/             #   后端代码检查(7类+安全/一致性阻断)
-│   ├── job-fill/                   #   job-filler 项目维护
-│   └── new-skill/                  #   创建新 skill 的脚手架
-├── team-memory/                    # 双维度记忆系统 + B期自动化运维
-│   ├── PROTOCOL.md                 #   协议(所有 agent 启动必读)
-│   ├── update_indexes.py           #   四步运维脚本
-│   ├── update-memory-indexes.sh   #   cron wrapper
-│   ├── {pm,frontend,backend,qa,team-lead}/  # 每角色:导航/索引/正文/工作/日志
-│   └── shared/contracts/           #   跨角色接口契约(单一事实源)
-├── team-workspaces/                # workspace 隔离(每角色独立工作目录)
-└── job-filler/                     # 实践项目:自动填招聘表单的 Chrome 扩展
-    ├── extension/                  #   MV3 扩展(content/background/sidepanel)
-    └── agent-server/               #   本地 agent 服务(/parse /fill,mock+LLM双模式)
+```text
+下载仓库 → 让 Agent 读取 AGENT_ENTRY.md → 按角色规则和协议开始工作
 ```
 
-## 三大支柱
+只有当任务涉及本机服务、数据库、浏览器验收、端口争用或运行环境所有权时，才需要启用 `runtime/` 目录里的高级能力。
 
-1. **Workspace 隔离** — 每角色独立工作目录;改 git 仓库代码并行时由 team-lead 用 `isolation:"worktree"` 派单。
-2. **双维度记忆系统** — 时间生命周期轴(日志/工作/沉淀,管生灭)× 检索深度轴(导航/索引/正文,管 token 成本)正交。检索三跳,frontmatter 为唯一事实源。
-3. **可追溯** — team-lead 维护 `decisions.md` 记录每次协作链路。
+## 最快使用方式
 
-## B 期自动化运维
+```powershell
+git clone https://github.com/Mryang123456/multi-agent-claude-code.git
+cd multi-agent-claude-code
+```
 
-每周一 10:15 cron 跑 `update_indexes.py` 四步流水线:结构同步 / 描述同步 / 自动归档(四重安全:只归 project + 显式 completed + 30天反悔 + 只移不删)/ 导航刷新。零人工索引维护。
+然后在 Claude、Codex 或其他开发 Agent 工具里告诉 Agent：
 
-## 演进
+```text
+请先读取 AGENT_ENTRY.md，然后按这套多 Agent 架构协作。
+```
 
-V1 单维度(时间轴)→ V2 A期加检索深度轴(双维度,治膨胀+漂移)→ V3 B期自动化运维(cron+归档,治腐化)。
+如果你的工具支持自定义 Agent / subagent，把 `agents/` 目录里的角色文件导入或复制到对应配置位置即可。
 
-## 使用
+## 架构分层
 
-将 `agents/`、`skills/`、`team-memory/`、`team-workspaces/` 放到 `~/.claude/` 下,在 Claude Code 新会话中即可被加载。详细介绍见 `multi-agent-architecture.html`(浏览器打开)。
+```text
+多 Agent 架构
+├── 启动入口：AGENT_ENTRY.md / QUICKSTART.md
+├── 角色层：team-lead / pm / frontend / backend / qa / runtime
+├── 协议层：task / gate / ownership / evidence / file placement
+├── 适配层：project adapter / workspace
+├── 可选运行时层：service registry / lease / health check
+└── 项目层：具体前端、后端、数据库、测试代码
+```
 
-## .gitignore 说明
+## 仓库结构
 
-排除:`node_modules/`、`.env`、`.ops.log`、`_archive/`(归档区,运行时生成)、macOS `.DS_Store`。
+```text
+├── AGENT_ENTRY.md                  # Agent 下载后首先读取的入口文件
+├── QUICKSTART.md                   # 人类用户快速使用说明
+├── PORTABLE.md                     # 迁移与可移植说明
+├── agents/                         # 主控、PM、前端、后端、QA、Runtime Agent 规则
+├── runtime/                        # 可选：本机服务注册表、租约和健康检查
+├── scripts/                        # 可选：runtime 初始化、状态检查、健康检查脚本
+├── skills/                         # 前后端检查与项目维护 skill
+├── team-memory/                    # 分角色记忆、共享协议、任务/Gate/适配器/工作区契约
+└── team-workspaces/                # 角色工作区与报告模板
+```
+
+## 下载后哪些东西立刻能用
+
+不需要任何初始化就能用：
+
+- `AGENT_ENTRY.md`
+- `agents/*.md`
+- `team-memory/PROTOCOL.md`
+- `team-memory/shared/contracts/*.md`
+- `team-memory/shared/tasks/*.json`
+- `team-memory/shared/gates/*.json`
+- `team-memory/shared/adapters/*.json`
+- `team-memory/shared/workspaces/*.json`
+- `team-workspaces/qa/templates/*.md`
+
+需要本机环境时才用：
+
+- `runtime/services.local.json`
+- `scripts/runtime-init.mjs`
+- `scripts/runtime-status.mjs`
+- `scripts/runtime-health.mjs`
+
+## Agent 默认启动规则
+
+任何 Agent 进入这个仓库后，优先读取：
+
+1. `AGENT_ENTRY.md`
+2. `team-memory/PROTOCOL.md`
+3. 当前角色文件，例如 `agents/team-lead.md`、`agents/frontend.md`
+4. 与任务有关的共享协议，例如文件结构门、机器证据 Gate、QA 证据协议
+
+如果当前任务只是写代码、审查代码、写文档、设计方案或调研，不需要 runtime 初始化。
+
+## 什么时候需要 runtime
+
+只有遇到这些场景才启用：
+
+- 需要启动/停止/重启本机服务；
+- 需要真实数据库或浏览器验收；
+- 多 Agent 可能争用同一个端口、进程、浏览器或数据库；
+- 需要记录服务 owner、session、PID、健康检查；
+- 需要区分 `BLOCKED_ENV`、`BLOCKED_TOOL` 和产品缺陷。
+
+启用方式：
+
+```powershell
+node scripts/runtime-init.mjs --project my-project
+node scripts/runtime-status.mjs
+node scripts/runtime-health.mjs
+```
+
+`runtime/services.local.json` 是本机私有文件，已被 Git 忽略。
+
+## 核心规则
+
+1. 主控 Agent 不默认某个技术栈。任务必须声明 workspace、component、adapter、QA 策略和文件结构策略。
+2. 子 Agent 不得把代码全部平铺在一个目录，必须按 adapter 和文件作用放入对应文件夹。
+3. 自然语言报告只算 `CLAIMED_DONE_UNVERIFIED`，必须由机器证据 Gate 核验后才能变成 `VERIFIED_DONE`。
+4. 真实数据库写入必须有明确授权；默认保留测试数据，清理必须单独授权并精确枚举目标。
+5. runtime 是高级能力，不是入门前置条件。
+
+## 详细文档
+
+- [Agent 启动入口](AGENT_ENTRY.md)
+- [快速开始](QUICKSTART.md)
+- [可移植安装与迁移指南](PORTABLE.md)
+- [运行环境说明](runtime/README.md)
+- [技术栈无关架构](team-memory/shared/contracts/technology-agnostic-agent-architecture.md)
+- [文件放置策略](team-memory/shared/contracts/file-placement-policy.md)
+- [机器证据 Gate](team-memory/shared/contracts/agent-evidence-gate.md)
+- [质量 Gate](team-memory/shared/contracts/quality-gates.md)
+- [QA 证据协议](team-memory/shared/contracts/qa-evidence-protocol.md)

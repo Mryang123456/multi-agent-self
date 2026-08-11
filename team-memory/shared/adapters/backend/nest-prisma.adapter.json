@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "id": "backend/nest-prisma",
+  "role": "backend",
+  "stack": "nest-prisma",
+  "systemTypes": ["web-saas", "api-service", "admin-console"],
+  "filePlacementPolicy": {
+    "expectedStructure": ["src/common", "src/config", "src/infrastructure", "src/modules"],
+    "forbiddenFlatPatterns": ["src/*.dto.ts", "src/*.service.ts", "src/*.controller.ts", "src/*Service.ts", "src/*Controller.ts", "src/*Dto.ts"],
+    "allowedRootFiles": ["package.json", "package-lock.json", "nest-cli.json", "tsconfig.json", "tsconfig.build.json", "Dockerfile", "docker-compose.yml", ".env.example", "src/main.ts", "src/app.module.ts"],
+    "notes": "Nest/Prisma 项目保留 main.ts 和 app.module.ts 在 src 根部；业务代码按 modules/<domain> 放置。"
+  },
+  "checks": {
+    "install": ["npm.cmd install"],
+    "lint": ["npm.cmd run lint"],
+    "typecheck": ["node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json"],
+    "unit": ["npm.cmd test"],
+    "build": ["npm.cmd run build"]
+  },
+  "qaStrategies": ["api-contract", "integration", "database-consistency", "security-smoke"],
+  "runtimeHints": {
+    "defaultPorts": [3000],
+    "healthEndpoints": ["/health/ready", "/health/live"]
+  },
+  "notes": "数据库迁移、seed、清理必须通过 task dataPolicy 和 runtime ownership 授权。"
+}
