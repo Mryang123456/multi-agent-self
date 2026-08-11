@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "workspaceId": "example-web-saas",
+  "tenantId": "local-demo",
+  "name": "示例 Web SaaS",
+  "systemType": "web-saas",
+  "components": [
+    {
+      "name": "web",
+      "role": "frontend",
+      "stack": "react-vite",
+      "path": "repos/web",
+      "adapter": "frontend/react-vite",
+      "runtime": {"host": "127.0.0.1", "port": 5173, "healthEndpoints": ["/"]},
+      "checks": ["lint", "typecheck", "unit", "build"],
+      "dataPolicy": "read-only"
+    },
+    {
+      "name": "api",
+      "role": "backend",
+      "stack": "nest-prisma",
+      "path": "repos/api",
+      "adapter": "backend/nest-prisma",
+      "runtime": {"host": "127.0.0.1", "port": 3000, "healthEndpoints": ["/health/ready"]},
+      "checks": ["lint", "typecheck", "unit", "build", "integration"],
+      "dataPolicy": "no-destructive-writes"
+    }
+  ],
+  "qaStrategies": ["api-contract", "browser-e2e", "accessibility", "database-consistency", "security-smoke"],
+  "artifactRoot": "artifacts/example-web-saas",
+  "secrets": {
+    "databasePassword": "local-secret:example-web-saas/databasePassword"
+  },
+  "notes": "这是跨技术栈工作区配置示例，不绑定 ProcureFlow。"
+}

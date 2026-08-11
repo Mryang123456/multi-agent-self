@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.multi-agent/schemas/workspace.schema.json",
+  "title": "Workspace Configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "workspaceId", "name", "systemType", "components", "qaStrategies"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "workspaceId": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"},
+    "tenantId": {"type": "string"},
+    "name": {"type": "string", "minLength": 1},
+    "systemType": {"type": "string", "minLength": 1},
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "role", "stack", "path", "adapter"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "role": {"enum": ["frontend", "backend", "database", "qa", "runtime", "fullstack", "generic"]},
+          "stack": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "adapter": {"type": "string", "minLength": 1},
+          "runtime": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "host": {"type": "string"},
+              "port": {"type": "integer"},
+              "healthEndpoints": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "checks": {"type": "array", "items": {"type": "string"}},
+          "dataPolicy": {"enum": ["read-only", "no-destructive-writes", "writes-allowed", "custom"]}
+        }
+      }
+    },
+    "qaStrategies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "artifactRoot": {"type": "string"},
+    "secrets": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "notes": {"type": "string"}
+  }
+}

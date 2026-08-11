@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.multi-agent/schemas/task.schema.json",
+  "title": "Multi-Agent Task Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title", "objective", "stage", "assignedAgent", "allowedPaths", "acceptanceCriteria", "requiredChecks", "machineEvidence", "status"],
+  "properties": {
+    "schemaVersion": {"enum": ["1.0", "1.1"]},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"},
+    "title": {"type": "string", "minLength": 1},
+    "objective": {"type": "string", "minLength": 1},
+    "requestedBy": {"type": "string"},
+    "stage": {"enum": ["S1", "S2", "S3", "S4", "S5", "standalone"]},
+    "assignedAgent": {"type": "string", "minLength": 1},
+    "workspaceId": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$"},
+    "component": {"type": "string"},
+    "projectAdapter": {"type": "string"},
+    "stack": {"type": "string"},
+    "qaStrategies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "dependencies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "allowedPaths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "forbiddenPaths": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true, "default": []},
+    "acceptanceCriteria": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "requiredChecks": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "machineEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "expectedArtifacts", "commands", "verificationStatus"],
+      "properties": {
+        "required": {"type": "boolean", "const": true},
+        "expectedArtifacts": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "commands": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "directorySnapshots": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "gitStatusCommand": {"type": "string", "default": "git status --short"},
+        "verificationStatus": {
+          "enum": ["CLAIMED_DONE_UNVERIFIED", "EVIDENCE_MISMATCH", "VERIFIED_DONE", "STALE_REPORT"],
+          "default": "CLAIMED_DONE_UNVERIFIED"
+        },
+        "verifiedBy": {"type": "string"},
+        "verifiedAt": {"type": "string", "format": "date-time"},
+        "notes": {"type": "string"}
+      }
+    },
+    "filePlacementPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "expectedStructure", "forbiddenFlatPatterns", "allowFlatPrototype"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "expectedStructure": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "forbiddenFlatPatterns": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "allowedRootFiles": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "allowFlatPrototype": {"type": "boolean", "default": false},
+        "structureGateCommands": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "notes": {"type": "string"}
+      }
+    },
+    "dataPolicy": {"enum": ["read-only", "no-destructive-writes", "writes-allowed", "custom"], "default": "no-destructive-writes"},
+    "commitPolicy": {"enum": ["no-commit", "commit-allowed", "commit-required"], "default": "no-commit"},
+    "timeoutPolicy": {"type": "object", "additionalProperties": false, "properties": {"heartbeatSeconds": {"type": "integer", "minimum": 15}, "commandTimeoutSeconds": {"type": "integer", "minimum": 1}}},
+    "status": {"enum": ["draft", "ready", "active", "blocked", "completed", "cancelled", "claimed_done_unverified", "evidence_mismatch", "verified_done", "stale_report"]},
+    "createdAt": {"type": "string", "format": "date-time"},
+    "updatedAt": {"type": "string", "format": "date-time"}
+  }
+}

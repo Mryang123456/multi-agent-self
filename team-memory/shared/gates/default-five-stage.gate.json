@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "name": "default-five-stage",
+  "stages": [
+    {"id":"S1","name":"需求澄清","ownerRole":["pm"],"entry":["user-request"],"outputs":["PRD","acceptance-criteria"],"exitCriteria":["Acceptance criteria are explicit","No unresolved blocking questions"],"requiredChecks":[],"blockingSeverities":["P0","P1"]},
+    {"id":"S2","name":"契约定义","ownerRole":["backend"],"entry":["approved-PRD"],"outputs":["shared-contract","technical-design"],"exitCriteria":["Shared contract is versioned","Fields and error semantics are defined"],"requiredChecks":["contract-review"],"blockingSeverities":["security","data-integrity"]},
+    {"id":"S3","name":"并行实现","ownerRole":["frontend","backend"],"entry":["approved-contract"],"outputs":["code","self-check-evidence"],"exitCriteria":["Required implementation checks pass"],"requiredChecks":["frontend-review","backend-review"],"blockingSeverities":["P0","P1","security","data-integrity"]},
+    {"id":"S4","name":"集成验证","ownerRole":["qa"],"entry":["S3-evidence"],"outputs":["test-report","defect-list"],"exitCriteria":["P0 and P1 defects are zero","Regression evidence is recorded"],"requiredChecks":["integration-tests","ui-acceptance-when-applicable"],"blockingSeverities":["P0","P1","security","data-integrity"]},
+    {"id":"S5","name":"交付收口","ownerRole":["team-lead"],"entry":["S4-report"],"outputs":["decision-log","delivery-report"],"exitCriteria":["Evidence paths are complete","Residual risks are disclosed","User confirmation is recorded when required"],"requiredChecks":["delivery-review"],"blockingSeverities":["P0","P1"]}
+  ]
+}

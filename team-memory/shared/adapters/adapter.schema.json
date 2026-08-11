@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.multi-agent/schemas/adapter.schema.json",
+  "title": "Project Adapter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "role", "stack", "filePlacementPolicy", "checks"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._/-]{2,79}$"},
+    "role": {"enum": ["frontend", "backend", "database", "qa", "runtime", "fullstack", "generic"]},
+    "stack": {"type": "string", "minLength": 1},
+    "systemTypes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "filePlacementPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expectedStructure", "forbiddenFlatPatterns", "allowedRootFiles"],
+      "properties": {
+        "expectedStructure": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "forbiddenFlatPatterns": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "allowedRootFiles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "notes": {"type": "string"}
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "install": {"type": "array", "items": {"type": "string"}},
+        "lint": {"type": "array", "items": {"type": "string"}},
+        "typecheck": {"type": "array", "items": {"type": "string"}},
+        "unit": {"type": "array", "items": {"type": "string"}},
+        "integration": {"type": "array", "items": {"type": "string"}},
+        "build": {"type": "array", "items": {"type": "string"}},
+        "security": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "qaStrategies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "runtimeHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "defaultPorts": {"type": "array", "items": {"type": "integer"}},
+        "healthEndpoints": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}
